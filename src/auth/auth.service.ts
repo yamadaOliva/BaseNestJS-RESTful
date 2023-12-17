@@ -4,10 +4,15 @@ export class AuthService {
   doSomething() {
     console.log('Doing something...');
   }
-  register() {
+  register(): string {
+    console.log('test login');
     return 'Registering...';
   }
-  login() {
+  login(): string {
+    console.log('test login');
     return 'Logging in...';
+  }
+  testing() {
+    console.log('test');
   }
 }
