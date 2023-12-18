@@ -1,21 +1,28 @@
-import { Controller, Post, Get } from '@nestjs/common';
+import { Controller, Post, Body, UseGuards } from '@nestjs/common';
 import { AuthService } from './auth.service';
+import { AuthDTO } from './dto/auth.dto';
+import { RtGuard } from './guard';
+import { GetRT, GetEmail } from './decorator';
 @Controller('auth')
 export class AuthController {
   constructor(private authService: AuthService) {
     this.authService.doSomething();
   }
   @Post('/register')
-  register(): string {
-    this.authService.register();
-    return 'test';
+  register(@Body() body: AuthDTO): Promise<any> {
+    return this.authService.register(body);
   }
   @Post('/login')
-  login() {
-    this.authService.login();
+  login(@Body() body: AuthDTO): Promise<any> {
+    return this.authService.login(body);
   }
-  @Get('/test')
-  testing() {
-    this.authService.testing();
+  @UseGuards(RtGuard)
+  @Post('/refresh-token')
+  refreshToken(
+    @GetEmail() email: any,
+    @GetRT() rf_token: string,
+  ): Promise<any> {
+    console.log('test', email, rf_token);
+    return this.authService.refreshToken(email, rf_token);
   }
 }
