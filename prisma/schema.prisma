@@ -18,6 +18,7 @@ model User {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   notes     Note[]
+  chats     Chat[]
   refreshToken String?
   @@map("users")
 }
@@ -31,4 +32,14 @@ model Note {
   authorId  String
   author    User     @relation(fields: [authorId], references: [id])
   @@map("notes")
+}
+model Chat {
+  id        String   @id @default(uuid())
+  content   String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  authorId  String
+  author    User     @relation(fields: [authorId], references: [id])
+  targetID  String
+  @@map("chats")
 }
