@@ -10,20 +10,20 @@ export class AuthController {
   }
   @Post('/register')
   register(@Body() body: AuthDTO): Promise<any> {
-    console.log(body);
     return this.authService.register(body);
   }
   @Post('/login')
   login(@Body() body: AuthDTO): Promise<any> {
+    console.log(body);
     return this.authService.login(body);
   }
   @UseGuards(RtGuard)
   @Post('/refresh-token')
-  refreshToken(
-    @GetUser('email') email: any,
-    @GetUser('refresh_token') rf_token: string,
-  ): Promise<any> {
-    console.log('test', email, rf_token);
-    return this.authService.refreshToken(email, rf_token);
+  refreshToken(@GetUser() user: any): Promise<any> {
+    console.log('test', user);
+    return this.authService.refreshToken(
+      user.user.email,
+      user.user.refreshToken,
+    );
   }
 }

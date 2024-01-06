@@ -6,7 +6,7 @@ CREATE TABLE "users" (
     "password" TEXT NOT NULL,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
-    "studentId" TEXT NOT NULL,
+    "studentId" TEXT NOT NULL DEFAULT '20CTT1',
     "majorId" INTEGER NOT NULL DEFAULT 1,
     "class" TEXT NOT NULL DEFAULT '20CTT1',
     "interest" TEXT[],
@@ -24,6 +24,7 @@ CREATE TABLE "users" (
 CREATE TABLE "majors" (
     "id" SERIAL NOT NULL,
     "name" TEXT NOT NULL,
+    "acronym" TEXT NOT NULL,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
 
