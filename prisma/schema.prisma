@@ -17,29 +17,67 @@ model User {
   password  String
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  notes     Note[]
-  chats     Chat[]
+  studentId String  @unique  @default("20CTT1")
+  major       Major     @relation(fields: [majorId], references: [id])
+  majorId   Int @default(1)
+  class     String @default("20CTT1")
+  interest  String[] 
+  comeFrom   String @default("Vietnam")
+  liveIn    String @default("Viet Nam")
+  Birthday  DateTime @default(now())
+  schoolYear Int @default(2020)
+  chatroomUsers ChatroomUser[]
+  messages  Message[]
   refreshToken String?
+  resetToken String?
   @@map("users")
 }
+model Major {
+  id        Int      @id @default(autoincrement())
+  name      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  users     User[]
+  @@map("majors")
+}
+model classCount{
+  id Int @id @default(autoincrement())
+  majorId Int
+  
+  schoolYear Int
+  count Int
+  @@map("class_count")
+}
 
-model Note {
+model Chatroom {
   id        String   @id @default(uuid())
-  title     String
-  content   String
+  name      String
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  authorId  String
-  author    User     @relation(fields: [authorId], references: [id])
-  @@map("notes")
+  chatroomUsers ChatroomUser[]
+  messages  Message[]
+
+  @@map("chatrooms")
 }
-model Chat {
-  id        String   @id @default(uuid())
-  content   String
+model ChatroomUser {
+  id        Int      @id @default(autoincrement())
+  userId    String
+  chatroomId String
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  authorId  String
-  author    User     @relation(fields: [authorId], references: [id])
-  targetID  String
-  @@map("chats")
+  user      User     @relation(fields: [userId], references: [id])
+  chatroom  Chatroom @relation(fields: [chatroomId], references: [id])
+  @@map("chatroom_users")
 }
+model Message {
+  id Int @id @default(autoincrement())
+  content String
+  imageUrl String?
+  userId String
+  chatroomId String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  user User @relation(fields: [userId], references: [id],onDelete: Cascade)
+  chatroom Chatroom @relation(fields: [chatroomId], references: [id],onDelete: Cascade)
+}
+

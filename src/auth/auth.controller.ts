@@ -2,7 +2,7 @@ import { Controller, Post, Body, UseGuards } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { AuthDTO } from './dto/auth.dto';
 import { RtGuard } from './guard';
-import { GetRT, GetEmail } from './decorator';
+import { GetUser } from './decorator';
 @Controller('auth')
 export class AuthController {
   constructor(private authService: AuthService) {
@@ -10,6 +10,7 @@ export class AuthController {
   }
   @Post('/register')
   register(@Body() body: AuthDTO): Promise<any> {
+    console.log(body);
     return this.authService.register(body);
   }
   @Post('/login')
@@ -19,8 +20,8 @@ export class AuthController {
   @UseGuards(RtGuard)
   @Post('/refresh-token')
   refreshToken(
-    @GetEmail() email: any,
-    @GetRT() rf_token: string,
+    @GetUser('email') email: any,
+    @GetUser('refresh_token') rf_token: string,
   ): Promise<any> {
     console.log('test', email, rf_token);
     return this.authService.refreshToken(email, rf_token);

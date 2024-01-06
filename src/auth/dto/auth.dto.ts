@@ -1,4 +1,5 @@
 import { IsEmail, IsNotEmpty, IsString } from 'class-validator';
+// import { IsEmailCustom } from '../validator/email.validator';
 export class AuthDTO {
   @IsEmail()
   @IsNotEmpty()

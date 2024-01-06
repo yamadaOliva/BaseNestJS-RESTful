@@ -1,7 +1,7 @@
 version: '3.8'
 services:
   dev-database:
-    image: postgres:15.0
+    image: postgres:latest
     container_name: dev-database
     ports:
       - 5432:5432
@@ -9,7 +9,21 @@ services:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: ninh1337
       POSTGRES_DB: dev
+    volumes:
+      - my-dbdata:/var/lib/postgresql/data
     networks:
       - nestjs-networks
+
+  redis:
+    image: redis:latest
+    container_name: redis
+    ports:
+      - 6379:6379
+    networks:
+      - nestjs-networks
+
 networks:
   nestjs-networks:
+
+volumes:
+  my-dbdata:
