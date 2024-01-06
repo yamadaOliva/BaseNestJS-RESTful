@@ -17,8 +17,8 @@ export class AuthService {
     console.log('Doing something...');
   }
   async register(authDTO: AuthDTO) {
-    console.log(authDTO);
     const hashedPassword = await argon.hash(authDTO.password);
+    console.log(authDTO);
     try {
       const user = await this.prisma.user.create({
         data: {
@@ -27,6 +27,7 @@ export class AuthService {
           name: authDTO.name,
         },
       });
+      console.log('test', user);
       delete user.password;
       delete user.updatedAt;
       if (user.name === null) delete user.name;
