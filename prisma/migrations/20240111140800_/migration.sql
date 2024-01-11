@@ -6,7 +6,7 @@ CREATE TABLE "users" (
     "password" TEXT NOT NULL,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
-    "studentId" TEXT NOT NULL DEFAULT '20CTT1',
+    "studentId" TEXT NOT NULL,
     "majorId" INTEGER NOT NULL DEFAULT 1,
     "class" TEXT NOT NULL DEFAULT '20CTT1',
     "interest" TEXT[],
@@ -16,6 +16,8 @@ CREATE TABLE "users" (
     "schoolYear" INTEGER NOT NULL DEFAULT 2020,
     "refreshToken" TEXT,
     "resetToken" TEXT,
+    "avatarUrl" TEXT,
+    "gender" TEXT,
 
     CONSTRAINT "users_pkey" PRIMARY KEY ("id")
 );
@@ -83,6 +85,9 @@ CREATE UNIQUE INDEX "users_studentId_key" ON "users"("studentId");
 
 -- AddForeignKey
 ALTER TABLE "users" ADD CONSTRAINT "users_majorId_fkey" FOREIGN KEY ("majorId") REFERENCES "majors"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "class_count" ADD CONSTRAINT "class_count_majorId_fkey" FOREIGN KEY ("majorId") REFERENCES "majors"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "chatroom_users" ADD CONSTRAINT "chatroom_users_userId_fkey" FOREIGN KEY ("userId") REFERENCES "users"("id") ON DELETE RESTRICT ON UPDATE CASCADE;

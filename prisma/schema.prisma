@@ -17,7 +17,7 @@ model User {
   password  String
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  studentId String  @unique  @default("20CTT1")
+  studentId String  @unique  @default(uuid())
   major       Major     @relation(fields: [majorId], references: [id])
   majorId   Int @default(1)
   class     String @default("20CTT1")
@@ -30,6 +30,10 @@ model User {
   messages  Message[]
   refreshToken String?
   resetToken String?
+  avatarUrl String?
+  gender  String?
+  phone String?
+  role String @default("USERS")
   @@map("users")
 }
 model Major {

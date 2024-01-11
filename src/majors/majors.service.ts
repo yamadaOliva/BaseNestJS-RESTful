@@ -6,6 +6,7 @@ export class MajorsService {
   constructor(private readonly prisma: PrismaService) {}
   async getAllMajors() {
     try {
+      //alphabetical order
       const majors = await this.prisma.major.findMany({
         select: {
           id: true,
