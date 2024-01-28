@@ -17,4 +17,5 @@ export class AuthDTO {
   class: string;
   interest: [string];
   gender: string;
+  schoolYear: number;
 }

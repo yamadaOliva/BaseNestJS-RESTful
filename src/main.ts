@@ -13,12 +13,12 @@ async function bootstrap() {
   app.useGlobalPipes(new ValidationPipe());
   const PORT_REACT = process.env.PORT_REACT || 'http://localhost:3000';
   const corsOptions: CorsOptions = {
-    origin: [PORT_REACT, 'http://192.168.1.13:3000'],
+    origin: [PORT_REACT, 'http://192.168.1.14:3000'],
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
     credentials: true,
   };
-  console.log(PORT_REACT);
   //init middleware
+
   app.enableCors(corsOptions);
   app.use(morgran('dev'));
   app.use(compression());

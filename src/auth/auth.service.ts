@@ -35,6 +35,7 @@ export class AuthService {
           class: authDTO.class,
           interest: authDTO.interest,
           gender: authDTO.gender,
+          schoolYear: authDTO.schoolYear,
         },
       });
       console.log('test', user);

@@ -20,7 +20,7 @@ export class AuthController {
   @UseGuards(RtGuard)
   @Post('/refresh-token')
   refreshToken(@GetUser() user: any): Promise<any> {
-    console.log('test', user);
+    console.log(user);
     return this.authService.refreshToken(
       user.user.email,
       user.user.refreshToken,
