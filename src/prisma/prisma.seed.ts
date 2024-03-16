@@ -89,6 +89,17 @@ async function main() {
     { name: 'Quản trị kinh doanh - ĐH Troy (Hoa Kỳ)', acronym: 'TROY-BA' },
     { name: 'Khoa học máy tính - ĐH Troy (Hoa Kỳ)', acronym: 'TROY-IT' },
   ];
+  const programsSortedByName = programs.slice().sort((a, b) => {
+    const nameA = a.name.toUpperCase();
+    const nameB = b.name.toUpperCase();
+    if (nameA < nameB) {
+      return -1;
+    }
+    if (nameA > nameB) {
+      return 1;
+    }
+    return 0;
+  });
 
   const classCount = [];
   for (let i = 0; i < programs.length; i++) {
@@ -104,7 +115,7 @@ async function main() {
     await prisma.user.deleteMany();
     await prisma.major.deleteMany();
     await prisma.major.createMany({
-      data: programs,
+      data: programsSortedByName,
     });
     await prisma.classCount.createMany({
       data: classCount,

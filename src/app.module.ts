@@ -6,6 +6,7 @@ import { GroupModule } from './group/group.module';
 import { PrismaModule } from './prisma/prisma.module';
 import { ConfigModule } from '@nestjs/config';
 import { MajorsModule } from './majors/majors.module';
+import { SocketModule } from './socket/socket.module';
 @Module({
   imports: [
     AuthModule,
@@ -15,6 +16,7 @@ import { MajorsModule } from './majors/majors.module';
     PrismaModule,
     ConfigModule,
     MajorsModule,
+    SocketModule,
   ],
 })
 export class AppModule {}

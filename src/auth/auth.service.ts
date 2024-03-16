@@ -6,6 +6,7 @@ import { HttpStatusCode } from '../global/globalEnum';
 import * as argon from 'argon2';
 import { JwtService } from '@nestjs/jwt';
 import * as crypto from 'crypto';
+import { faker } from '@faker-js/faker';
 @Injectable()
 export class AuthService {
   constructor(
@@ -25,6 +26,16 @@ export class AuthService {
           email: authDTO.email,
           password: hashedPassword,
           name: authDTO.name,
+          avatarUrl: faker.image.avatar(),
+          studentId: authDTO.studentId,
+          majorId: authDTO.majorId,
+          comeFrom: authDTO.comeFrom,
+          liveIn: authDTO.liveIn,
+          Birthday: authDTO.Birthday,
+          class: authDTO.class,
+          interest: authDTO.interest,
+          gender: authDTO.gender,
+          schoolYear: authDTO.schoolYear,
         },
       });
       console.log('test', user);

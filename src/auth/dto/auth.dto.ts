@@ -9,4 +9,13 @@ export class AuthDTO {
   @IsString()
   password: string;
   name: string;
+  studentId: string;
+  majorId: number;
+  comeFrom: string;
+  liveIn: string;
+  Birthday: Date;
+  class: string;
+  interest: [string];
+  gender: string;
+  schoolYear: number;
 }
