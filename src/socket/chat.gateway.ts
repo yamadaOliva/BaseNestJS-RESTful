@@ -32,4 +32,15 @@ export class ChatGateway
     console.log(`Connected ${client.id}`);
     //Do stuffs
   }
+  @SubscribeMessage('message')
+  async handleMessage(client: Socket, payload: string) {
+    console.log(payload);
+    this.server.emit('message', payload);
+  }
+  async sendMessageToAll(message: string) {
+    this.server.emit('message', message);
+  }
+  async sendMessageToUser(userId: string, message: string) {
+    this.server.to(userId).emit('message', message);
+  }
 }
