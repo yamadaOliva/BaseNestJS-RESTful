@@ -41,6 +41,7 @@ model User {
   role String @default("USERS")
   friendsSrc Friend[] @relation("src")
   friendsTarget Friend[] @relation("target")
+  
   @@map("users")
 }
 model Major {
@@ -126,6 +127,8 @@ model Comment {
   content   String
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  left      Int      @default(0)
+  right     Int      @default(0)
   user      User     @relation(fields: [userId], references: [id])
   userId    String
   postId    String
@@ -146,6 +149,7 @@ model Like {
   comment   Comment  @relation(fields: [commentId], references: [id])
   @@map("likes")
 }
+
 model Friend {
   id        Int      @id @default(autoincrement())
   userId    String

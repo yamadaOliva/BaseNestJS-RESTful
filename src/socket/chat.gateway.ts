@@ -33,14 +33,26 @@ export class ChatGateway
     //Do stuffs
   }
   @SubscribeMessage('message')
-  async handleMessage(client: Socket, payload: string) {
+  async handleMessage(
+    client: Socket,
+    payload: { userID: string; message: string },
+  ) {
     console.log(payload);
-    this.server.emit('message', payload);
+    console.log(payload?.userID);
+    const roomName = "user_" + payload.userID;
+    console.log(`Sending message to room: ${roomName}`);
+    this.server.to(roomName).emit('message', payload.message);
   }
   async sendMessageToAll(message: string) {
     this.server.emit('message', message);
   }
   async sendMessageToUser(userId: string, message: string) {
     this.server.to(userId).emit('message', message);
+  }
+  @SubscribeMessage('join')
+  async handleJoinRoom(client: Socket, room: string) {
+    console.log(`Joining room: ${room}`);
+    client.join(room);
+    client.emit('joined', room);
   }
 }

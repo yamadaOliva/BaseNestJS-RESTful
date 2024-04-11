@@ -58,13 +58,13 @@ export class AuthService {
     }
   }
   async login(authDTO: AuthDTO) {
-    console.log(authDTO);
     try {
       const user = await this.prisma.user.findUnique({
         where: {
           email: authDTO.email,
         },
       });
+      console.log(user);
       if (user) {
         const isPasswordValid = await argon.verify(
           user.password,
@@ -82,6 +82,8 @@ export class AuthService {
             HttpStatusCode.SUCCESS,
             'User logged in successfully',
           );
+        }else{
+          throw new ForbiddenException("User's email or password is incorrect");
         }
       } else {
         throw new ForbiddenException("User's email or password is incorrect");
