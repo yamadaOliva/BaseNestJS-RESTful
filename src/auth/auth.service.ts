@@ -44,6 +44,7 @@ export class AuthService {
       if (user.name === null) delete user.name;
       const token: any = await this.convertToJwt({
         email: user.email,
+        id: user.id,
       });
       await this.updateRefreshToken(user.email, token.refresh_token);
       return new ResponseClass(
@@ -75,6 +76,7 @@ export class AuthService {
           if (user.name === null) delete user.name;
           const token: any = await this.convertToJwt({
             email: user.email,
+            id: user.id,
           });
           console.log(token);
           return new ResponseClass(
@@ -92,7 +94,7 @@ export class AuthService {
       throw new ForbiddenException("User's email or password is incorrect");
     }
   }
-  async convertToJwt(user: { email: string }): Promise<any> {
+  async convertToJwt(user: { email: string , id:string}): Promise<any> {
     const payload = { user };
     return {
       access_token: await this.jwtService.signAsync(payload, {
@@ -140,6 +142,7 @@ export class AuthService {
     if (user!.refreshToken !== refresh_token) {
       const token: any = await this.convertToJwt({
         email: user!.email,
+        id: user!.id,
       });
       await this.updateRefreshToken(user!.email, token.refresh_token);
       return new ResponseClass(

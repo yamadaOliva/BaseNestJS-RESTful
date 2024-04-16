@@ -9,6 +9,7 @@ import { MajorsModule } from './majors/majors.module';
 import { SocketModule } from './socket/socket.module';
 import { FriendModule } from './friend/friend.module';
 import { PostModule } from './post/post.module';
+import { ChatModule } from './chat/chat.module';
 @Module({
   imports: [
     AuthModule,
@@ -21,6 +22,7 @@ import { PostModule } from './post/post.module';
     SocketModule,
     FriendModule,
     PostModule,
+    ChatModule,
   ],
 })
 export class AppModule {}

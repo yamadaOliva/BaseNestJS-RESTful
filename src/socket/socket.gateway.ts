@@ -7,14 +7,19 @@ import {
   OnGatewayDisconnect,
 } from '@nestjs/websockets';
 import { Socket, Server } from 'socket.io';
+import { ChatService } from 'src/chat/chat.service';
 //running port 80, cors
 @WebSocketGateway(8001, {
   cors: '*',
 })
-export class ChatGateway
+export class SocketGateway
   implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect
 {
-  constructor() {}
+  constructor(
+    private readonly chatService: ChatService,
+  ) {
+    
+  }
 
   @WebSocketServer() server: Server;
 
@@ -35,13 +40,13 @@ export class ChatGateway
   @SubscribeMessage('message')
   async handleMessage(
     client: Socket,
-    payload: { userID: string; message: string },
+    payload: { userID: string; message: string ;sourceID:string},
   ) {
     console.log(payload);
     console.log(payload?.userID);
     const roomName = "user_" + payload.userID;
-    console.log(`Sending message to room: ${roomName}`);
     this.server.to(roomName).emit('message', payload.message);
+    this.chatService.createMessage(payload?.sourceID, payload.userID, payload.message);
   }
   async sendMessageToAll(message: string) {
     this.server.emit('message', message);
