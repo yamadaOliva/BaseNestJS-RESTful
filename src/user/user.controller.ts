@@ -10,4 +10,10 @@ export class UserController {
   me(@GetUser() user: any) {
     return this.userService.findOne(user.user.email);
   }
+
+  @UseGuards(JwtGuard)
+  @Get('/profile')
+  profile(@GetUser() user: any) {
+    return this.userService.getProfile(user.user.email);
+  }
 }

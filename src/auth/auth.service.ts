@@ -19,7 +19,8 @@ export class AuthService {
   }
   async register(authDTO: AuthDTO) {
     const hashedPassword = await argon.hash(authDTO.password);
-    console.log(authDTO);
+    //convert schoolYear to number
+    const schoolYearPtr = parseInt(authDTO.schoolYear);
     try {
       const user = await this.prisma.user.create({
         data: {
@@ -35,10 +36,10 @@ export class AuthService {
           class: authDTO.class,
           interest: authDTO.interest,
           gender: authDTO.gender,
-          schoolYear: authDTO.schoolYear,
+          schoolYear: schoolYearPtr,
         },
       });
-      console.log('test', user);
+      console.log('testttttt', user);
       delete user.password;
       delete user.updatedAt;
       if (user.name === null) delete user.name;
@@ -53,6 +54,7 @@ export class AuthService {
         "User's account has been created successfully",
       );
     } catch (error) {
+      console.log(error);
       if (error.code === 'P2002') {
         throw new ForbiddenException("User's email already exists");
       }
@@ -94,6 +96,8 @@ export class AuthService {
       throw new ForbiddenException("User's email or password is incorrect");
     }
   }
+
+
   async convertToJwt(user: { email: string , id:string}): Promise<any> {
     const payload = { user };
     return {
@@ -106,6 +110,10 @@ export class AuthService {
         expiresIn: process.env.RT_EXPIRES_IN,
       }),
     };
+  }
+
+  async loginWith365Office(data:any){
+    console.log(data);
   }
 
   updateRefreshToken = async (

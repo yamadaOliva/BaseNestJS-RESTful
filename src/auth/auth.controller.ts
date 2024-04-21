@@ -26,4 +26,9 @@ export class AuthController {
       user.user.refreshToken,
     );
   }
+
+  @Post('/office365')
+  office365(@Body() body: any) {
+    return this.authService.loginWith365Office(body);
+  }
 }
