@@ -113,8 +113,64 @@ export class AuthService {
   }
 
   async loginWith365Office(data:any){
-    console.log(data);
+    const email = data.email.toLowerCase();
+    //delete last word of name
+    const studentId = data.name.split(' ').slice(-1).join(' ');
+    const name = data.name.split(' ').slice(0, -1).join(' ');
+    //find email in database if not exist create new user password 123456
+    const user = await this.prisma.user.findUnique({
+      where: {
+        email: email,
+      },
+    });
+    if (!user) {
+      const hashedPassword = await argon.hash('123456');
+      try {
+        const user = await this.prisma.user.create({
+          data: {
+            email: email,
+            password: hashedPassword,
+            name: name,
+            avatarUrl: faker.image.avatar(),
+            studentId: studentId,
+          },
+        });
+        delete user.password;
+        delete user.updatedAt;
+        if (user.name === null) delete user.name;
+        const token: any = await this.convertToJwt({
+          email: user.email,
+          id: user.id,
+        });
+        await this.updateRefreshToken(user.email, token.refresh_token);
+        return new ResponseClass(
+          token,
+          HttpStatusCode.SUCCESS,
+          'User logged in successfully',
+        );
+      } catch (error) {
+        console.log(error);
+        if (error.code === 'P2002') {
+          throw new ForbiddenException("User's email already exists");
+        }
+      }
+    }else{
+        delete user.password;
+        delete user.updatedAt;
+        if (user.name === null) delete user.name;
+        const token: any = await this.convertToJwt({
+          email: user.email,
+          id: user.id,
+        });
+        await this.updateRefreshToken(user.email, token.refresh_token);
+        return new ResponseClass(
+          token,
+          HttpStatusCode.SUCCESS,
+          'User logged in successfully',
+        );
+    }
   }
+
 
   updateRefreshToken = async (
     email: string,
@@ -160,4 +216,4 @@ export class AuthService {
       );
     }
   }
-}
+}  

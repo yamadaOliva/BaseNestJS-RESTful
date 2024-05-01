@@ -1,3 +1,4 @@
+
 import { Injectable } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
 import { ExtractJwt, Strategy } from 'passport-jwt';
@@ -5,7 +6,7 @@ import * as jwksRsa from 'jwks-rsa';
 import { ConfigService } from '@nestjs/config';
 
 @Injectable()
-export class HustStrategy extends PassportStrategy(Strategy, 'hust') {
+export class AzureADStrategy extends PassportStrategy(Strategy, 'AzureAD') {
   constructor(protected readonly configService: ConfigService) {
     super({
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
@@ -26,3 +27,4 @@ export class HustStrategy extends PassportStrategy(Strategy, 'hust') {
     return payload;
   }
 }
+1
