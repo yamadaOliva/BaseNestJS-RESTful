@@ -1,7 +1,7 @@
-import { Controller, Post, Body, UseGuards } from '@nestjs/common';
+import { Controller, Post, Body, UseGuards, Headers, Get } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { AuthDTO } from './dto/auth.dto';
-import { RtGuard } from './guard';
+import { HustGuard, RtGuard } from './guard';
 import { GetUser } from './decorator';
 @Controller('auth')
 export class AuthController {
@@ -25,5 +25,9 @@ export class AuthController {
       user.user.email,
       user.user.refreshToken,
     );
+  }
+  @Post('/office365')
+  office365(@Body() body: any): Promise<any>{
+    return this.authService.loginWith365Office(body);
   }
 }

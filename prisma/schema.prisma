@@ -11,113 +11,126 @@ datasource db {
 }
 
 model User {
-  id        String   @id @default(uuid())
-  email     String   @unique
-  name      String?
-  password  String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  studentId String  @unique  @default(uuid())
-  major       Major     @relation(fields: [majorId], references: [id])
-  majorId   Int @default(1)
-  class     String @default("20CTT1")
-  interest  String[]
-  comeFrom   String @default("Vietnam")
-  liveIn    String @default("Viet Nam")
-  Birthday  DateTime @default(now())
-  schoolYear Int @default(2020)
-  chatroomUsers ChatroomUser[]
-  messages  MessageGroup[]
+  id                  String           @id @default(uuid())
+  email               String           @unique
+  name                String?
+  password            String
+  createdAt           DateTime         @default(now())
+  updatedAt           DateTime         @updatedAt
+  studentId           String           @unique @default(uuid())
+  major               Major            @relation(fields: [majorId], references: [id])
+  majorId             Int              @default(1)
+  class               String           @default("20CTT1")
+  interest            String[]
+  comeFrom            String           @default("Vietnam")
+  liveIn              String           @default("Viet Nam")
+  Birthday            DateTime         @default(now())
+  schoolYear          Int              @default(2020)
+  chatroomUsers       ChatroomUser[]
+  messages            MessageGroup[]
   messagesPrivateFrom MessagePrivate[] @relation("fromUser")
-  messagesPrivateTo MessagePrivate[] @relation("toUser")
-  refreshToken String?
-  resetToken String?
-  avatarUrl String?
-  gender  String?
-  phone String?
-  Posts Post[]
-  Comments Comment[]
-  Likes Like[]
-  role String @default("USERS")
-  friendsSrc Friend[] @relation("src")
-  friendsTarget Friend[] @relation("target")
+  messagesPrivateTo   MessagePrivate[] @relation("toUser")
+  refreshToken        String?
+  resetToken          String?
+  avatarUrl           String?
+  gender              String?
+  phone               String?
+  Posts               Post[]
+  Comments            Comment[]
+  Likes               Like[]
+  role                String           @default("USERS")
+  friendsSrc          Friend[]         @relation("src")
+  friendsTarget       Friend[]         @relation("target")
+
   @@map("users")
 }
+
 model Major {
-  id        Int      @id @default(autoincrement()) 
-  name      String
-  acronym   String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  users     User[]
+  id         Int          @id @default(autoincrement())
+  name       String
+  acronym    String
+  createdAt  DateTime     @default(now())
+  updatedAt  DateTime     @updatedAt
+  users      User[]
   classCount classCount[]
+
   @@map("majors")
 }
-model classCount{
-  id Int @id @default(autoincrement())
-  majorId Int
-  major Major @relation(fields: [majorId], references: [id])
+
+model classCount {
+  id         Int   @id @default(autoincrement())
+  majorId    Int
+  major      Major @relation(fields: [majorId], references: [id])
   schoolYear Int
-  count Int
+  count      Int
+
   @@map("class_count")
 }
 
 model Chatroom {
-  id        String   @id @default(uuid())
-  name      String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id            String         @id @default(uuid())
+  name          String
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
   chatroomUsers ChatroomUser[]
-  messages  MessageGroup[]
+  messages      MessageGroup[]
 
   @@map("chatrooms")
 }
+
 model ChatroomUser {
-  id        Int      @id @default(autoincrement())
-  userId    String
+  id         Int      @id @default(autoincrement())
+  userId     String
   chatroomId String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  user      User     @relation(fields: [userId], references: [id])
-  chatroom  Chatroom @relation(fields: [chatroomId], references: [id])
-  avatarUrl String?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  user       User     @relation(fields: [userId], references: [id])
+  chatroom   Chatroom @relation(fields: [chatroomId], references: [id])
+  avatarUrl  String?
+
   @@map("chatroom_users")
 }
+
 model MessageGroup {
-  id Int @id @default(autoincrement())
-  content String
-  imageUrl String?
-  userId String
+  id         Int      @id @default(autoincrement())
+  content    String
+  imageUrl   String?
+  userId     String
   chatroomId String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  user User @relation(fields: [userId], references: [id],onDelete: Cascade)
-  chatroom Chatroom @relation(fields: [chatroomId], references: [id],onDelete: Cascade)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  chatroom   Chatroom @relation(fields: [chatroomId], references: [id], onDelete: Cascade)
+
+  @@map("message_groups")
 }
 
 model MessagePrivate {
-  id Int @id @default(autoincrement())
-  content String
-  imageUrl String?
+  id         Int      @id @default(autoincrement())
+  content    String
+  imageUrl   String?
   fromUserId String
-  toUserId String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  fromUser User @relation("fromUser", fields: [fromUserId], references: [id], onDelete: Cascade)
-  toUser User @relation("toUser", fields: [toUserId], references: [id], onDelete: Cascade)
+  toUserId   String
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  fromUser   User     @relation("fromUser", fields: [fromUserId], references: [id], onDelete: Cascade)
+  toUser     User     @relation("toUser", fields: [toUserId], references: [id], onDelete: Cascade)
+
+  @@map("message_privates")
 }
 
 model Post {
-  id        String   @id @default(uuid())
+  id        String    @id @default(uuid())
   title     String
   content   String
   imageUrl  String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  user      User     @relation(fields: [userId], references: [id])
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  user      User      @relation(fields: [userId], references: [id])
   userId    String
   comments  Comment[]
   likes     Like[]
+
   @@map("posts")
 }
 
@@ -126,11 +139,14 @@ model Comment {
   content   String
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  left      Int      @default(0)
+  right     Int      @default(0)
   user      User     @relation(fields: [userId], references: [id])
   userId    String
   postId    String
   post      Post     @relation(fields: [postId], references: [id])
   likes     Like[]
+
   @@map("comments")
 }
 
@@ -144,16 +160,19 @@ model Like {
   post      Post     @relation(fields: [postId], references: [id])
   commentId String
   comment   Comment  @relation(fields: [commentId], references: [id])
+
   @@map("likes")
 }
+
 model Friend {
   id        Int      @id @default(autoincrement())
   userId    String
   friendId  String
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  user      User     @relation("src",fields: [userId], references: [id])
-  friend    User     @relation("target",fields: [friendId], references: [id])
+  user      User     @relation("src", fields: [userId], references: [id])
+  friend    User     @relation("target", fields: [friendId], references: [id])
   status    String   @default("PENDING")
+
   @@map("friends")
 }

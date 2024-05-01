@@ -19,7 +19,8 @@ export class AuthService {
   }
   async register(authDTO: AuthDTO) {
     const hashedPassword = await argon.hash(authDTO.password);
-    console.log(authDTO);
+    //convert schoolYear to number
+    const schoolYearPtr = parseInt(authDTO.schoolYear);
     try {
       const user = await this.prisma.user.create({
         data: {
@@ -35,15 +36,16 @@ export class AuthService {
           class: authDTO.class,
           interest: authDTO.interest,
           gender: authDTO.gender,
-          schoolYear: authDTO.schoolYear,
+          schoolYear: schoolYearPtr,
         },
       });
-      console.log('test', user);
+      console.log('testttttt', user);
       delete user.password;
       delete user.updatedAt;
       if (user.name === null) delete user.name;
       const token: any = await this.convertToJwt({
         email: user.email,
+        id: user.id,
       });
       await this.updateRefreshToken(user.email, token.refresh_token);
       return new ResponseClass(
@@ -52,19 +54,20 @@ export class AuthService {
         "User's account has been created successfully",
       );
     } catch (error) {
+      console.log(error);
       if (error.code === 'P2002') {
         throw new ForbiddenException("User's email already exists");
       }
     }
   }
   async login(authDTO: AuthDTO) {
-    console.log(authDTO);
     try {
       const user = await this.prisma.user.findUnique({
         where: {
           email: authDTO.email,
         },
       });
+      console.log(user);
       if (user) {
         const isPasswordValid = await argon.verify(
           user.password,
@@ -75,6 +78,7 @@ export class AuthService {
           if (user.name === null) delete user.name;
           const token: any = await this.convertToJwt({
             email: user.email,
+            id: user.id,
           });
           console.log(token);
           return new ResponseClass(
@@ -82,6 +86,8 @@ export class AuthService {
             HttpStatusCode.SUCCESS,
             'User logged in successfully',
           );
+        }else{
+          throw new ForbiddenException("User's email or password is incorrect");
         }
       } else {
         throw new ForbiddenException("User's email or password is incorrect");
@@ -90,7 +96,9 @@ export class AuthService {
       throw new ForbiddenException("User's email or password is incorrect");
     }
   }
-  async convertToJwt(user: { email: string }): Promise<any> {
+
+
+  async convertToJwt(user: { email: string , id:string}): Promise<any> {
     const payload = { user };
     return {
       access_token: await this.jwtService.signAsync(payload, {
@@ -103,6 +111,66 @@ export class AuthService {
       }),
     };
   }
+
+  async loginWith365Office(data:any){
+    const email = data.email.toLowerCase();
+    //delete last word of name
+    const studentId = data.name.split(' ').slice(-1).join(' ');
+    const name = data.name.split(' ').slice(0, -1).join(' ');
+    //find email in database if not exist create new user password 123456
+    const user = await this.prisma.user.findUnique({
+      where: {
+        email: email,
+      },
+    });
+    if (!user) {
+      const hashedPassword = await argon.hash('123456');
+      try {
+        const user = await this.prisma.user.create({
+          data: {
+            email: email,
+            password: hashedPassword,
+            name: name,
+            avatarUrl: faker.image.avatar(),
+            studentId: studentId,
+          },
+        });
+        delete user.password;
+        delete user.updatedAt;
+        if (user.name === null) delete user.name;
+        const token: any = await this.convertToJwt({
+          email: user.email,
+          id: user.id,
+        });
+        await this.updateRefreshToken(user.email, token.refresh_token);
+        return new ResponseClass(
+          token,
+          HttpStatusCode.SUCCESS,
+          'User logged in successfully',
+        );
+      } catch (error) {
+        console.log(error);
+        if (error.code === 'P2002') {
+          throw new ForbiddenException("User's email already exists");
+        }
+      }
+    }else{
+        delete user.password;
+        delete user.updatedAt;
+        if (user.name === null) delete user.name;
+        const token: any = await this.convertToJwt({
+          email: user.email,
+          id: user.id,
+        });
+        await this.updateRefreshToken(user.email, token.refresh_token);
+        return new ResponseClass(
+          token,
+          HttpStatusCode.SUCCESS,
+          'User logged in successfully',
+        );
+    }
+  }
+
 
   updateRefreshToken = async (
     email: string,
@@ -138,6 +206,7 @@ export class AuthService {
     if (user!.refreshToken !== refresh_token) {
       const token: any = await this.convertToJwt({
         email: user!.email,
+        id: user!.id,
       });
       await this.updateRefreshToken(user!.email, token.refresh_token);
       return new ResponseClass(
@@ -147,4 +216,4 @@ export class AuthService {
       );
     }
   }
-}
+}  
