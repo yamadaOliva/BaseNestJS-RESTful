@@ -11,7 +11,8 @@ export class AuthDTO {
   name: string;
   studentId: string;
   majorId: number;
-  comeFrom: string;
+  city: string;
+  district: string;
   liveIn: string;
   Birthday: Date;
   class: string;
