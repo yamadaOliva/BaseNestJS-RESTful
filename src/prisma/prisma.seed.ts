@@ -103,10 +103,10 @@ async function main() {
 
   const classCount = [];
   for (let i = 0; i < programs.length; i++) {
-    for (let j = 0; j < 5; j++) {
+    for (let j = 0; j < 7; j++) {
       classCount.push({
         majorId: i + 1,
-        schoolYear: 2019 + j,
+        schoolYear: 2024 - j,
         count: 5,
       });
     }

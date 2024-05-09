@@ -20,11 +20,12 @@ model User {
   studentId           String           @unique @default(uuid())
   major               Major            @relation(fields: [majorId], references: [id])
   majorId             Int              @default(1)
-  class               String           @default("20CTT1")
+  class               String           @default("")
   interest            String[]
-  comeFrom            String           @default("Vietnam")
-  liveIn              String           @default("Viet Nam")
-  Birthday            DateTime         @default(now())
+  liveIn              String?          @default("Ha Noi")
+  city                String?
+  district            String?
+  Birthday            DateTime?        @default(now())
   schoolYear          Int              @default(2020)
   chatroomUsers       ChatroomUser[]
   messages            MessageGroup[]

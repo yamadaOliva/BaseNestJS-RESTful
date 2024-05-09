@@ -30,7 +30,8 @@ export class AuthService {
           avatarUrl: faker.image.avatar(),
           studentId: authDTO.studentId,
           majorId: authDTO.majorId,
-          comeFrom: authDTO.comeFrom,
+          city: authDTO.city,
+          district: authDTO.district,
           liveIn: authDTO.liveIn,
           Birthday: authDTO.Birthday,
           class: authDTO.class,
@@ -133,6 +134,7 @@ export class AuthService {
             name: name,
             avatarUrl: faker.image.avatar(),
             studentId: studentId,
+            schoolYear: parseInt(studentId.slice(0, 4))
           },
         });
         delete user.password;
