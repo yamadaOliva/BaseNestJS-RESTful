@@ -51,4 +51,35 @@ export class UserService {
     }
     
   }
+
+  async updateProfile(email: string, data:any): Promise<any> {
+    console.log(data);
+    try {
+      const user = await this.prisma.user.update({
+        where: {
+          email: email,
+        },
+        data: {
+          name: data.name,
+          avatarUrl: data.avatarUrl,
+          phone: data.phone,
+          city: data.city,
+          district: data.district,
+          interest : data.interest,
+          class : data.class,
+          majorId : data.majorId,
+          gender : data.gender,
+          Birthday : data.birthday,
+        },
+      });
+      return new ResponseClass(
+        user,
+        HttpStatusCode.SUCCESS,
+        'Update user profile successfully',
+      );
+    } catch (error) {
+        throw new NotFoundException('User not found');
+    }
+  }
+  
 }
