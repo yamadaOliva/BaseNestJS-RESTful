@@ -7,7 +7,6 @@ export class FriendController {
     @UseGuards(JwtGuard)
     @Post('/add')
     async addFriend(@Body('idSource') idSource: string, @Body('idTarget') idTarget: string) {
-        console.log(idSource, idTarget);
         return await this.friendService.addFriend(idSource, idTarget);
     }
 

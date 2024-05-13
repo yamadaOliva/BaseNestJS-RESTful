@@ -20,7 +20,6 @@ export class UserController {
   @UseGuards(JwtGuard)
   @Put('/profile')
   updateProfile(@Body() userData: any, @GetUser() user: any){
-    console.log(userData)
     return this.userService.updateProfile(user.user.email, userData);
   }
 }
