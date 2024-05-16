@@ -51,4 +51,53 @@ export class UserService {
     }
     
   }
+
+  getProfileById = async (id: string): Promise<any> => {
+    try {
+      const user = await this.prisma.user.findUnique({
+        where: {
+          id: id,
+        },
+      });
+      delete user.password;
+      return new ResponseClass(
+        user,
+        HttpStatusCode.SUCCESS,
+        'Get user profile successfully',
+      );
+    } catch (error) {
+        throw new NotFoundException('User not found');
+    }
+  }
+
+  async updateProfile(email: string, data:any): Promise<any> {
+    console.log(data);
+    try {
+      const user = await this.prisma.user.update({
+        where: {
+          email: email,
+        },
+        data: {
+          name: data.name,
+          avatarUrl: data.avatarUrl,
+          phone: data.phone,
+          city: data.city,
+          district: data.district,
+          interest : data.interest,
+          class : data.class,
+          majorId : data.majorId,
+          gender : data.gender,
+          Birthday : data.birthday,
+        },
+      });
+      return new ResponseClass(
+        user,
+        HttpStatusCode.SUCCESS,
+        'Update user profile successfully',
+      );
+    } catch (error) {
+        throw new NotFoundException('User not found');
+    }
+  }
+  
 }

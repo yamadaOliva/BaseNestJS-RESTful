@@ -29,7 +29,6 @@ export class SocketGateway
   }
 
   async handleDisconnect(client: Socket) {
-    console.log(`Disconnected: ${client.id}`);
     //Do stuffs
   }
 

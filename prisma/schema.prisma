@@ -42,6 +42,7 @@ model User {
   role                String           @default("USERS")
   friendsSrc          Friend[]         @relation("src")
   friendsTarget       Friend[]         @relation("target")
+  notifications       Notification[]
 
   @@map("users")
 }
@@ -176,4 +177,17 @@ model Friend {
   status    String   @default("PENDING")
 
   @@map("friends")
+}
+
+model Notification {
+  id        String   @id @default(uuid())
+  content   String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  status    String   @default("UNREAD")
+  type      String   @default("POST")
+
+  @@map("notifications")
 }

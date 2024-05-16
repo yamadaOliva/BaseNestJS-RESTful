@@ -40,7 +40,6 @@ export class AuthService {
           schoolYear: schoolYearPtr,
         },
       });
-      console.log('testttttt', user);
       delete user.password;
       delete user.updatedAt;
       if (user.name === null) delete user.name;
@@ -68,7 +67,6 @@ export class AuthService {
           email: authDTO.email,
         },
       });
-      console.log(user);
       if (user) {
         const isPasswordValid = await argon.verify(
           user.password,
@@ -81,7 +79,6 @@ export class AuthService {
             email: user.email,
             id: user.id,
           });
-          console.log(token);
           return new ResponseClass(
             token,
             HttpStatusCode.SUCCESS,
@@ -200,7 +197,6 @@ export class AuthService {
         email: email,
       },
     });
-    console.log(user);
     if (!user || !user.refreshToken)
       throw new ForbiddenException(
         "User's email or refresh token is incorrect",

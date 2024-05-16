@@ -42,7 +42,6 @@ export class ChatService {
     }
     
     async createMessage(sourceId: string, targetId: string, message: string) {
-        console.log("piupippipi:",sourceId, targetId, message);
         try {
             await this.prisma.messagePrivate.create({
                 data: {

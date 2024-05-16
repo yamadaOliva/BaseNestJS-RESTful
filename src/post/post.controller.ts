@@ -1,4 +1,4 @@
-import { Body, Controller, Post, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Post, UseGuards } from '@nestjs/common';
 import { PostService } from './post.service';
 import { JwtGuard } from 'src/auth/guard';
 import { GetUser } from 'src/auth/decorator';
@@ -14,4 +14,9 @@ export class PostController {
         });
     }
     
+    @UseGuards(JwtGuard)
+    @Get('/get')
+    async getPosts(@GetUser() user) {
+        return await this.postService.getPostByUserId(user.user.id);
+    }
 }

@@ -14,13 +14,11 @@ export class AuthController {
   }
   @Post('/login')
   login(@Body() body: AuthDTO): Promise<any> {
-    console.log(body);
     return this.authService.login(body);
   }
   @UseGuards(RtGuard)
   @Post('/refresh-token')
   refreshToken(@GetUser() user: any): Promise<any> {
-    console.log(user);
     return this.authService.refreshToken(
       user.user.email,
       user.user.refreshToken,
