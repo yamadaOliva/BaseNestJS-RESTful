@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Put, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Param, Put, UseGuards } from '@nestjs/common';
 import { JwtGuard } from '../auth/guard';
 import { GetUser } from '../auth/decorator';
 import { UserService } from './user.service';
@@ -21,5 +21,12 @@ export class UserController {
   @Put('/profile')
   updateProfile(@Body() userData: any, @GetUser() user: any){
     return this.userService.updateProfile(user.user.email, userData);
+  }
+
+  @UseGuards(JwtGuard)
+  @Get('/profile/:id')
+  getProfileById(@Param() id : any) {
+    console.log(id);
+    return this.userService.getProfileById(id.id);
   }
 }

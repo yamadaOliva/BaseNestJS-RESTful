@@ -52,6 +52,24 @@ export class UserService {
     
   }
 
+  getProfileById = async (id: string): Promise<any> => {
+    try {
+      const user = await this.prisma.user.findUnique({
+        where: {
+          id: id,
+        },
+      });
+      delete user.password;
+      return new ResponseClass(
+        user,
+        HttpStatusCode.SUCCESS,
+        'Get user profile successfully',
+      );
+    } catch (error) {
+        throw new NotFoundException('User not found');
+    }
+  }
+
   async updateProfile(email: string, data:any): Promise<any> {
     console.log(data);
     try {
