@@ -13,10 +13,11 @@ export class AuthDTO {
   majorId: number;
   city: string;
   district: string;
-  liveIn: string;
-  Birthday: Date;
+  liveIn?: string;
+  Birthday?: Date;
   class: string;
-  interest: [string];
+  interest?: [string];
   gender: string;
   schoolYear: string;
+  phone?: string;
 }

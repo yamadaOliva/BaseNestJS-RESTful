@@ -29,4 +29,5 @@ export class UserController {
     console.log(id);
     return this.userService.getProfileById(id.id);
   }
+
 }
