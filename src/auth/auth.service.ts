@@ -38,6 +38,7 @@ export class AuthService {
           interest: authDTO.interest,
           gender: authDTO.gender,
           schoolYear: schoolYearPtr,
+          phone: authDTO.phone,
         },
       });
       delete user.password;

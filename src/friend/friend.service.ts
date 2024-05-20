@@ -168,13 +168,13 @@ export class FriendService {
           friendId: true,
         },
       });
-        const userFriendIds = userFriends.map((friend) => {
-            if (friend.userId === id) {
-            return friend.friendId;
-            } else {
-            return friend.userId;
-            }
-        });
+      const userFriendIds = userFriends.map((friend) => {
+        if (friend.userId === id) {
+          return friend.friendId;
+        } else {
+          return friend.userId;
+        }
+      });
 
       const friends = await this.prisma.user.findMany({
         where: {
@@ -239,6 +239,197 @@ export class FriendService {
       );
     } catch (error) {
       throw new NotFoundException('Unable to get list pending request');
+    }
+  }
+
+  async searchFriend(id: string, keyword: string, type: string) {
+    console.log(id, keyword, type);
+    try {
+      const friends = await this.prisma.friend.findMany({
+        where: {
+          OR: [{ userId: id }, { friendId: id }],
+        },
+        select: {
+          userId: true,
+          friendId: true,
+        },
+      });
+      const friendIds = friends.map((friend) => {
+        if (friend.userId === id) {
+          return friend.friendId;
+        } else {
+          return friend.userId;
+        }
+      });
+      switch (type) {
+        case 'name':
+          const ans = await this.prisma.user.findMany({
+            where: {
+              id: { notIn: friendIds.concat(id) },
+              name: {
+                contains: keyword,
+                mode: 'insensitive',
+              },
+            },
+            select: {
+              id: true,
+              name: true,
+              avatarUrl: true,
+              district: true,
+              city: true,
+              class: true,
+              studentId: true,
+            },
+          });
+          return new ResponseClass(
+            ans,
+            HttpStatusCode.SUCCESS,
+            'Search friend by name successfully',
+          );
+        case 'studentId':
+          const ans2 = await this.prisma.user.findMany({
+            where: {
+              id: { notIn: friendIds.concat(id) },
+              studentId: {
+                contains: keyword,
+                mode: 'insensitive',
+              },
+            },
+            select: {
+              id: true,
+              name: true,
+              avatarUrl: true,
+              district: true,
+              city: true,
+              class: true,
+              studentId: true,
+            },
+          });
+          return new ResponseClass(
+            ans2,
+            HttpStatusCode.SUCCESS,
+            'Search friend by studentId successfully',
+          );
+        default:
+          break;
+      }
+    } catch (error) {
+      console.log(error);
+    }
+  }
+
+  async filterFriend(id: string, type: string, page: number, per_page: number) {
+    try {
+      const user = await this.prisma.user.findUnique({
+        where: {
+          id: id,
+        },
+      });
+      console.log(user);
+      const friends = await this.prisma.friend.findMany({
+        where: {
+          OR: [{ userId: id }, { friendId: id }],
+        },
+        select: {
+          userId: true,
+          friendId: true,
+        },
+      });
+      const friendIds = friends.map((friend) => {
+        if (friend.userId === id) {
+          return friend.friendId;
+        } else {
+          return friend.userId;
+        }
+      });
+      switch (type) {
+        case 'sameSchoolYear':
+          const friendList = await this.prisma.user.findMany({
+            where: {
+              id: { notIn: friendIds.concat(id) },
+              schoolYear: {
+                equals: user.schoolYear,
+              },
+              majorId: {
+                equals: user.majorId,
+              },
+            },
+            skip: (page - 1) * per_page,
+            take: per_page,
+            select: {
+              id: true,
+              name: true,
+              avatarUrl: true,
+              district: true,
+              city: true,
+              class: true,
+              studentId: true,
+            },
+          });
+          return new ResponseClass(
+            friendList,
+            HttpStatusCode.SUCCESS,
+            'Get friends by same school year successfully',
+          );
+        case 'sameMajor':
+          const friendList2 = await this.prisma.user.findMany({
+            where: {
+              id: { notIn: friendIds.concat(id) },
+              majorId: {
+                equals: user.majorId,
+              },
+            },
+            skip: (page - 1) * per_page,
+            take: per_page,
+            select: {
+              id: true,
+              name: true,
+              avatarUrl: true,
+              district: true,
+              city: true,
+              class: true,
+              studentId: true,
+            },
+          });
+          console.log(friendList2);
+          return new ResponseClass(
+            friendList2,
+            HttpStatusCode.SUCCESS,
+            'Get friends by same major successfully',
+          );
+        case 'sameClass':
+          const friendList3 = await this.prisma.user.findMany({
+            where: {
+              id: { notIn: friendIds.concat(id) },
+              class: {
+                equals: user.class,
+              },
+              schoolYear: {
+                equals: user.schoolYear,
+              },
+            },
+            skip: (page - 1) * per_page,
+            take: per_page,
+            select: {
+              id: true,
+              name: true,
+              avatarUrl: true,
+              district: true,
+              city: true,
+              class: true,
+              studentId: true,
+            },
+          });
+          return new ResponseClass(
+            friendList3,
+            HttpStatusCode.SUCCESS,
+            'Get friends by same class successfully',
+          );
+        default:
+          break;
+      }
+    } catch (error) {
+      console.log(error);
     }
   }
 }

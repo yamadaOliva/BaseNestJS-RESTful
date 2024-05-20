@@ -65,4 +65,25 @@ export class FriendController {
       limit,
     );
   }
+
+  @UseGuards(JwtGuard)
+  @Get('/search/:type/:keyword')
+  async searchFriend(
+    @GetUser() user,
+    @Param('keyword') keyword: string,
+    @Param('type') type: string,
+  ) {
+    return await this.friendService.searchFriend(user.user.id, keyword, type);
+  }
+
+  @UseGuards(JwtGuard)
+  @Get('/filter/:type/:page/:limit')
+  async filterFriend(
+    @GetUser() user,
+    @Param('type') type: string,
+    @Param('page', ParseIntPipe) page: number,
+    @Param('limit', ParseIntPipe) limit: number,
+  ) {
+    return await this.friendService.filterFriend(user.user.id, type, page, limit);
+  }
 }
