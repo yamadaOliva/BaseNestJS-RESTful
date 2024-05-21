@@ -105,47 +105,6 @@ export class FriendService {
     });
   }
 
-  async getFriendsRecommend(id: string): Promise<any> {
-    try {
-      const friends = await this.prisma.friend.findMany({
-        where: {
-          OR: [{ userId: id }, { friendId: id }],
-        },
-        select: {
-          userId: true,
-          friendId: true,
-        },
-      });
-      console.log(friends);
-      // Tạo danh sách các id bạn bè
-      const friendIds = friends.map((friend) => {
-        if (friend.userId === id) {
-          return friend.friendId;
-        } else {
-          return friend.userId;
-        }
-      });
-
-      const recommendedFriends = await this.prisma.user.findMany({
-        where: {
-          id: { notIn: friendIds.concat(id) },
-        },
-        select: {
-          id: true,
-          name: true,
-          avatarUrl: true,
-        },
-      });
-
-      return new ResponseClass(
-        recommendedFriends,
-        HttpStatusCode.SUCCESS,
-        'Get friends recommendations successfully',
-      );
-    } catch (error) {
-      throw new NotFoundException('Unable to get friends recommendations');
-    }
-  }
 
   async getFriendscountryman(
     id: string,
@@ -230,6 +189,9 @@ export class FriendService {
             },
           },
         },
+        orderBy: {
+          createdAt: 'desc',
+        }
       });
       console.log(requests);
       return new ResponseClass(
