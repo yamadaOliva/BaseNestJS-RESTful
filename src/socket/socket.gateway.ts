@@ -15,11 +15,7 @@ import { ChatService } from 'src/chat/chat.service';
 export class SocketGateway
   implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect
 {
-  constructor(
-    private readonly chatService: ChatService,
-  ) {
-    
-  }
+  constructor(private readonly chatService: ChatService) {}
 
   @WebSocketServer() server: Server;
 
@@ -39,13 +35,17 @@ export class SocketGateway
   @SubscribeMessage('message')
   async handleMessage(
     client: Socket,
-    payload: { userID: string; message: string ;sourceID:string},
+    payload: { userID: string; message: string; sourceID: string },
   ) {
     console.log(payload);
     console.log(payload?.userID);
-    const roomName = "user_" + payload.userID;
+    const roomName = 'user_' + payload.userID;
     this.server.to(roomName).emit('message', payload.message);
-    this.chatService.createMessage(payload?.sourceID, payload.userID, payload.message);
+    this.chatService.createMessage(
+      payload?.sourceID,
+      payload.userID,
+      payload.message,
+    );
   }
   async sendMessageToAll(message: string) {
     this.server.emit('message', message);
@@ -58,5 +58,13 @@ export class SocketGateway
     console.log(`Joining room: ${room}`);
     client.join(room);
     client.emit('joined', room);
+  }
+  @SubscribeMessage('friendRequest')
+  async handleFriendRequest(
+    client: Socket,
+    payload: { userID: string; sourceID: string },
+  ) {
+    const roomName = 'user_' + payload.userID;
+    this.server.to(roomName).emit('friendRequest', payload.sourceID);
   }
 }
