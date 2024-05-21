@@ -27,7 +27,7 @@ export class AuthService {
           email: authDTO.email,
           password: hashedPassword,
           name: authDTO.name,
-          avatarUrl: faker.image.avatar(),
+          avatarUrl: "https://res.cloudinary.com/subarasuy/image/upload/v1716135390/prvieraqcydb8ehxjf8x.png",
           studentId: authDTO.studentId,
           majorId: authDTO.majorId,
           city: authDTO.city,
@@ -38,6 +38,7 @@ export class AuthService {
           interest: authDTO.interest,
           gender: authDTO.gender,
           schoolYear: schoolYearPtr,
+          phone: authDTO.phone,
         },
       });
       delete user.password;
@@ -48,6 +49,14 @@ export class AuthService {
         id: user.id,
       });
       await this.updateRefreshToken(user.email, token.refresh_token);
+      await this.prisma.post.create({
+        data: {
+          userId: user.id,
+          title: "Cảm thấy thấy phẩn khởi.",
+          content:"Tôi là thành viên mới, mọi người giúp đỡ tôi nhé <3",
+          imageUrl: "https://res.cloudinary.com/subarasuy/image/upload/v1716135269/cp0dnqxche5ivnry8lsc.jpg"
+        },
+      });
       return new ResponseClass(
         token,
         HttpStatusCode.SUCCESS,
@@ -79,6 +88,7 @@ export class AuthService {
             email: user.email,
             id: user.id,
           });
+          
           return new ResponseClass(
             token,
             HttpStatusCode.SUCCESS,
@@ -129,7 +139,7 @@ export class AuthService {
             email: email,
             password: hashedPassword,
             name: name,
-            avatarUrl: faker.image.avatar(),
+            avatarUrl: "https://res.cloudinary.com/subarasuy/image/upload/v1716135390/prvieraqcydb8ehxjf8x.png",
             studentId: studentId,
             schoolYear: parseInt(studentId.slice(0, 4))
           },
@@ -142,6 +152,14 @@ export class AuthService {
           id: user.id,
         });
         await this.updateRefreshToken(user.email, token.refresh_token);
+        await this.prisma.post.create({
+          data: {
+            userId: user.id,
+            title: "Cảm thấy thấy phẩn khởi.",
+            content:"Tôi là thành viên mới, mọi người giúp đỡ tôi nhé <3",
+            imageUrl: "https://res.cloudinary.com/subarasuy/image/upload/v1716135269/cp0dnqxche5ivnry8lsc.jpg"
+          },
+        });
         return new ResponseClass(
           token,
           HttpStatusCode.SUCCESS,
