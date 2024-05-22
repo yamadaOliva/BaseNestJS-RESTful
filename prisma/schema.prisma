@@ -43,6 +43,8 @@ model User {
   friendsSrc          Friend[]         @relation("src")
   friendsTarget       Friend[]         @relation("target")
   notifications       Notification[]
+  statusAccount       String           @default("ACTIVE")
+  statusOnline        String           @default("OFFLINE")
 
   @@map("users")
 }

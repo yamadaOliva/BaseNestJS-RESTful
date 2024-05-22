@@ -28,8 +28,8 @@ export class FriendController {
   }
 
   @UseGuards(JwtGuard)
-  @Put('/reject/:idRequest')
-  async rejectFriend(@Param('idRequest') idRequest: number) {
+  @Put('/reject')
+  async rejectFriend(@Body('idRequest')  idRequest: number) {
     return await this.friendService.rejectFriend(idRequest);
   }
 
