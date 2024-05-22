@@ -21,8 +21,9 @@ export class FriendController {
   }
 
   @UseGuards(JwtGuard)
-  @Put('/accept/:idRequest')
-  async acceptFriend(@Param('idRequest') idRequest: number) {
+  @Put('/accept')
+  async acceptFriend(@Body('idRequest') idRequest: number) {
+    console.log(idRequest);
     return await this.friendService.acceptFriend(idRequest);
   }
 
@@ -33,9 +34,13 @@ export class FriendController {
   }
 
   @UseGuards(JwtGuard)
-  @Get('/list')
-  async getFriendList(@GetUser() user) {
-    return await this.friendService.getFriendList(user.user.id);
+  @Get('/list/:page/:limit')
+  async getFriendList(
+    @GetUser() user,
+    @Param('page', ParseIntPipe) page: number,
+    @Param('limit', ParseIntPipe) limit: number,
+  ) {
+    return await this.friendService.getFriendList(user.user.id, limit, page);
   }
 
   @UseGuards(JwtGuard)
@@ -84,6 +89,11 @@ export class FriendController {
     @Param('page', ParseIntPipe) page: number,
     @Param('limit', ParseIntPipe) limit: number,
   ) {
-    return await this.friendService.filterFriend(user.user.id, type, page, limit);
+    return await this.friendService.filterFriend(
+      user.user.id,
+      type,
+      page,
+      limit,
+    );
   }
 }

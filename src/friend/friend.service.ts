@@ -48,14 +48,57 @@ export class FriendService {
   }
 
   async acceptFriend(idRequest: number) {
-    return await this.prisma.friend.update({
-      where: {
-        id: idRequest,
-      },
-      data: {
-        status: 'ACCEPTED',
-      },
-    });
+    try {
+      //update friend request status
+      const { userId, friendId } = await this.prisma.friend.findUnique({
+        where: {
+          id: idRequest,
+        },
+        select: {
+          userId: true,
+          friendId: true,
+        },
+      });
+      const nameUser = await this.prisma.user.findUnique({
+        where: {
+          id: userId,
+        },
+        select: {
+          name: true,
+        },
+      });
+      const nameFriend = await this.prisma.user.findUnique({
+        where: {
+          id: friendId,
+        },
+        select: {
+          name: true,
+        },
+      });
+      await this.prisma.friend.update({
+        where: {
+          id: idRequest,
+        },
+        data: {
+          status: 'ACCEPTED',
+        },
+      });
+      await this.prisma.notification.create({
+        data: {
+          userId: userId,
+          content: `${nameFriend.name} đã chấp nhận lời mời kết bạn của bạn`,
+          type: 'FRIEND',
+        },
+      });
+
+      return new ResponseClass(
+        null,
+        HttpStatusCode.SUCCESS,
+        'Accept friend request successfully',
+      );
+    } catch (error) {
+      throw new NotFoundException('Friend request not found');
+    }
   }
 
   async rejectFriend(idRequest: number) {
@@ -76,35 +119,43 @@ export class FriendService {
     }
   }
 
-  async getFriendList(id: string) {
-    return await this.prisma.friend.findMany({
-      where: {
-        OR: [
-          {
-            userId: id,
-          },
-          {
-            friendId: id,
-          },
-        ],
-        status: 'ACCEPTED',
-      },
-      select: {
-        user: {
-          select: {
-            id: true,
-            name: true,
-            avatarUrl: true,
-            district: true,
-            city: true,
-            class: true,
-            studentId: true,
+  async getFriendList(id: string, per_page: number, page: number) {
+    try {
+      await this.prisma.friend.findMany({
+        where: {
+          OR: [
+            {
+              userId: id,
+            },
+            {
+              friendId: id,
+            },
+          ],
+          status: 'ACCEPTED',
+        },
+        skip: (page - 1) * per_page,
+        take: per_page,
+        select: {
+          user: {
+            select: {
+              id: true,
+              name: true,
+              avatarUrl: true,
+              district: true,
+              city: true,
+              class: true,
+              studentId: true,
+            },
           },
         },
-      },
-    });
+      });
+      return new ResponseClass(
+        null,
+        HttpStatusCode.SUCCESS,
+        'Get friend list successfully',
+      );
+    } catch (error) {}
   }
-
 
   async getFriendscountryman(
     id: string,
@@ -191,7 +242,7 @@ export class FriendService {
         },
         orderBy: {
           createdAt: 'desc',
-        }
+        },
       });
       console.log(requests);
       return new ResponseClass(
