@@ -1,0 +1,3 @@
+-- AlterTable
+ALTER TABLE "users" ADD COLUMN     "statusAccount" TEXT NOT NULL DEFAULT 'ACTIVE',
+ADD COLUMN     "statusOnline" TEXT NOT NULL DEFAULT 'OFFLINE';

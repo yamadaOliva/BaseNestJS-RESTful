@@ -3,15 +3,21 @@ import {
   ForbiddenException,
   Injectable,
   NotFoundException,
+  Inject,
 } from '@nestjs/common';
 import { HttpStatusCode } from '../global/globalEnum';
 import { ResponseClass } from '../global';
+import { Redis } from 'ioredis';
 
 @Injectable()
 export class FriendService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    @Inject('REDIS_CLIENT') private readonly redis: Redis,
+  ) {}
+
   async addFriend(idSource: string, idTarget: string) {
-    //check if friend request already exists
+    // check if friend request already exists
     try {
       const friendRequest = await this.prisma.friend.findFirst({
         where: {
@@ -49,7 +55,7 @@ export class FriendService {
 
   async acceptFriend(idRequest: number) {
     try {
-      //update friend request status
+      // update friend request status
       const { userId, friendId } = await this.prisma.friend.findUnique({
         where: {
           id: idRequest,
@@ -94,7 +100,7 @@ export class FriendService {
   }
 
   async rejectFriend(idRequest: number) {
-    //delete friend request
+    // delete friend request
     try {
       await this.prisma.friend.delete({
         where: {
@@ -174,15 +180,24 @@ export class FriendService {
           },
         },
       });
-      let friends = friends2.map((friend) => {
-        return {
-          id: friend.id,
-          user: {
-            ...friend?.friend
-          }
-        };
-      });
-      friends = friends.concat(friends1);
+      const mutualFriendsPromises1 = friends1.map(async (friend) => ({
+        id: friend.id,
+        user: { ...friend.user },
+        mutualFriends: await this.findMutualFriends(id, friend.user.id),
+      }));
+
+      const mutualFriendsPromises2 = friends2.map(async (friend) => ({
+        id: friend.id,
+        user: { ...friend.friend },
+        mutualFriends: await this.findMutualFriends(id, friend.friend.id),
+      }));
+
+      const friends = await Promise.all([
+        ...mutualFriendsPromises1,
+        ...mutualFriendsPromises2,
+      ]);
+      // Save to Redis
+
       return new ResponseClass(
         { friends, totalFriends },
         HttpStatusCode.SUCCESS,
@@ -247,6 +262,10 @@ export class FriendService {
           studentId: true,
         },
       });
+
+      // Save to Redis
+      await this.redis.set(`friends_countryman:${id}`, JSON.stringify(friends));
+
       return new ResponseClass(
         friends,
         HttpStatusCode.SUCCESS,
@@ -286,6 +305,10 @@ export class FriendService {
         },
       });
       console.log(requests);
+
+      // Save to Redis
+      await this.redis.set(`pending_requests:${id}`, JSON.stringify(requests));
+
       return new ResponseClass(
         requests,
         HttpStatusCode.SUCCESS,
@@ -484,6 +507,76 @@ export class FriendService {
       }
     } catch (error) {
       console.log(error);
+    }
+  }
+
+  async loadFriendsToRedis(id: string) {
+    try {
+      //delete old data
+      const friends1 = await this.prisma.friend.findMany({
+        where: {
+          friendId: id,
+          status: 'ACCEPTED',
+        },
+        select: {
+          userId: true,
+        },
+      });
+      const friends2 = await this.prisma.friend.findMany({
+        where: {
+          userId: id,
+          status: 'ACCEPTED',
+        },
+        select: {
+          friendId: true,
+        },
+      });
+
+      const friendIds = friends1.map((friend) => friend.userId);
+      friendIds.push(...friends2.map((friend) => friend.friendId));
+      const promises = friendIds.map(async (friendId) => {
+        this.redis.sadd(`friends:${id}:test`, friendId);
+      });
+      await Promise.all(promises);
+    } catch (error) {
+      console.error(error);
+    }
+  }
+
+  async findMutualFriends(id1: string, id2: string) {
+    try {
+      // get mutual friends
+      let mutualFriends = await this.redis.smembers(
+        `mutualFriends:${id1}:${id2}`,
+      );
+      if (mutualFriends) {
+        return mutualFriends.length;
+      } else {
+        const friends1 = await this.redis.smembers(`friends:${id1}:test`);
+        const friends2 = await this.redis.smembers(`friends:${id2}:test`);
+        if (friends1 && friends2) {
+          const count = await this.redis.sinterstore(
+            `mutualFriends:${id1}:${id2}`,
+            `friends:${id1}:test`,
+            `friends:${id2}:test`,
+          );
+          return count;
+        }
+        if (!friends1) {
+          this.loadFriendsToRedis(id1);
+        }
+        if (!friends2) {
+          this.loadFriendsToRedis(id2);
+        }
+        const count = await this.redis.sinterstore(
+          `mutualFriends:${id1}:${id2}`,
+          `friends:${id1}:test`,
+          `friends:${id2}:test`,
+        );
+        return count;
+      }
+    } catch (error) {
+      console.error(error);
     }
   }
 }
