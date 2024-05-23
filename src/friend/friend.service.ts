@@ -59,14 +59,6 @@ export class FriendService {
           friendId: true,
         },
       });
-      const nameUser = await this.prisma.user.findUnique({
-        where: {
-          id: userId,
-        },
-        select: {
-          name: true,
-        },
-      });
       const nameFriend = await this.prisma.user.findUnique({
         where: {
           id: friendId,
@@ -121,7 +113,8 @@ export class FriendService {
 
   async getFriendList(id: string, per_page: number, page: number) {
     try {
-      await this.prisma.friend.findMany({
+      // Lấy tổng số bạn
+      const totalFriends = await this.prisma.friend.count({
         where: {
           OR: [
             {
@@ -133,9 +126,18 @@ export class FriendService {
           ],
           status: 'ACCEPTED',
         },
+      });
+
+      // Lấy danh sách bạn bè với phân trang
+      const friends1 = await this.prisma.friend.findMany({
+        where: {
+          friendId: id,
+          status: 'ACCEPTED',
+        },
         skip: (page - 1) * per_page,
         take: per_page,
         select: {
+          id: true,
           user: {
             select: {
               id: true,
@@ -149,12 +151,51 @@ export class FriendService {
           },
         },
       });
+
+      const friends2 = await this.prisma.friend.findMany({
+        where: {
+          userId: id,
+          status: 'ACCEPTED',
+        },
+        skip: (page - 1) * per_page,
+        take: per_page,
+        select: {
+          id: true,
+          friend: {
+            select: {
+              id: true,
+              name: true,
+              avatarUrl: true,
+              district: true,
+              city: true,
+              class: true,
+              studentId: true,
+            },
+          },
+        },
+      });
+      let friends = friends2.map((friend) => {
+        return {
+          id: friend.id,
+          user: {
+            ...friend?.friend
+          }
+        };
+      });
+      friends = friends.concat(friends1);
       return new ResponseClass(
-        null,
+        { friends, totalFriends },
         HttpStatusCode.SUCCESS,
         'Get friend list successfully',
       );
-    } catch (error) {}
+    } catch (error) {
+      console.error(error);
+      return new ResponseClass(
+        null,
+        HttpStatusCode.FORBIDDEN,
+        'Failed to get friend list',
+      );
+    }
   }
 
   async getFriendscountryman(
