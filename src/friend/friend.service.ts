@@ -71,6 +71,7 @@ export class FriendService {
         },
         select: {
           name: true,
+          avatarUrl: true,
         },
       });
       await this.prisma.friend.update({
@@ -86,6 +87,7 @@ export class FriendService {
           userId: userId,
           content: `${nameFriend.name} đã chấp nhận lời mời kết bạn của bạn`,
           type: 'FRIEND',
+          sourceAvatarUrl: nameFriend.avatarUrl,
         },
       });
 

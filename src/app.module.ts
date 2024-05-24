@@ -10,6 +10,7 @@ import { SocketModule } from './socket/socket.module';
 import { FriendModule } from './friend/friend.module';
 import { PostModule } from './post/post.module';
 import { ChatModule } from './chat/chat.module';
+import { NotificationModule } from './notification/notification.module';
 @Module({
   imports: [
     AuthModule,
@@ -23,6 +24,7 @@ import { ChatModule } from './chat/chat.module';
     FriendModule,
     PostModule,
     ChatModule,
+    NotificationModule,
   ],
 })
 export class AppModule {}

@@ -60,15 +60,14 @@ export class SocketGateway
     client.emit('joined', room);
   }
 
-
   @SubscribeMessage('addFriend')
   async handleFriendRequest(
     client: Socket,
-    payload: { friendId : string },
+    payload: { friendId: string; message: string },
   ) {
-    console.log('addFriend', payload);
     const roomName = 'user_' + payload.friendId;
+    console.log('addFriend', payload);
     console.log('addFriend', payload.friendId);
-    this.server.to(roomName).emit('notificationFriend', payload.friendId);
+    this.server.to(roomName).emit('notificationFriend', payload);
   }
 }
