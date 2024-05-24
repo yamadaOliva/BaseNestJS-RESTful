@@ -96,4 +96,10 @@ export class FriendController {
       limit,
     );
   }
+
+  @UseGuards(JwtGuard)
+  @Get('/list/online')
+  async getListOnline(@GetUser() user) {
+    return await this.friendService.getOnlineFriends(user.user.id);
+  }
 }

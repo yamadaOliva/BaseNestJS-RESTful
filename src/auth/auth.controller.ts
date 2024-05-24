@@ -1,13 +1,19 @@
-import { Controller, Post, Body, UseGuards, Headers, Get } from '@nestjs/common';
+import {
+  Controller,
+  Post,
+  Body,
+  UseGuards,
+  Headers,
+  Get,
+  Put,
+} from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { AuthDTO } from './dto/auth.dto';
-import { HustGuard, RtGuard } from './guard';
+import {  JwtGuard, RtGuard } from './guard';
 import { GetUser } from './decorator';
 @Controller('auth')
 export class AuthController {
-  constructor(private authService: AuthService) {
-    this.authService.doSomething();
-  }
+  constructor(private authService: AuthService) {}
   @Post('/register')
   register(@Body() body: AuthDTO): Promise<any> {
     return this.authService.register(body);
@@ -17,7 +23,7 @@ export class AuthController {
     return this.authService.login(body);
   }
   @UseGuards(RtGuard)
-  @Post('/refresh-token')
+  @Post('/refreshToken')
   refreshToken(@GetUser() user: any): Promise<any> {
     return this.authService.refreshToken(
       user.user.email,
@@ -25,7 +31,12 @@ export class AuthController {
     );
   }
   @Post('/office365')
-  office365(@Body() body: any): Promise<any>{
+  office365(@Body() body: any): Promise<any> {
     return this.authService.loginWith365Office(body);
+  }
+  @UseGuards(JwtGuard)
+  @Put('/logout')
+  logout(@GetUser() user: any): Promise<any> {
+    return this.authService.logout(user.user.email);
   }
 }

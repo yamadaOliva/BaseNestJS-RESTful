@@ -1,4 +1,4 @@
-import { ForbiddenException, Injectable } from '@nestjs/common';
+import { ForbiddenException, Injectable, Inject } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { AuthDTO } from './dto';
 import { ResponseClass } from '../global';
@@ -6,17 +6,24 @@ import { HttpStatusCode } from '../global/globalEnum';
 import * as argon from 'argon2';
 import { JwtService } from '@nestjs/jwt';
 import * as crypto from 'crypto';
-import { faker } from '@faker-js/faker';
+import { Redis } from 'ioredis';
+
 @Injectable()
 export class AuthService {
   constructor(
     private prisma: PrismaService,
     private jwtService: JwtService,
+    @Inject('REDIS_CLIENT') private readonly redis: Redis,
   ) {}
 
-  doSomething() {
-    console.log('Doing something...');
+  async setOnlineStatus(id :string) {
+    await this.redis.set(`online:${id}`, 'true', 'EX', 6000);
   }
+
+  setOfflineStatus = async (id: string) => {
+    await this.redis.del(`online:${id}`);
+  }
+
   async register(authDTO: AuthDTO) {
     const hashedPassword = await argon.hash(authDTO.password);
     //convert schoolYear to number
@@ -27,7 +34,8 @@ export class AuthService {
           email: authDTO.email,
           password: hashedPassword,
           name: authDTO.name,
-          avatarUrl: "https://res.cloudinary.com/subarasuy/image/upload/v1716135390/prvieraqcydb8ehxjf8x.png",
+          avatarUrl:
+            'https://res.cloudinary.com/subarasuy/image/upload/v1716135390/prvieraqcydb8ehxjf8x.png',
           studentId: authDTO.studentId,
           majorId: authDTO.majorId,
           city: authDTO.city,
@@ -52,11 +60,13 @@ export class AuthService {
       await this.prisma.post.create({
         data: {
           userId: user.id,
-          title: "Cảm thấy thấy phẩn khởi.",
-          content:"Tôi là thành viên mới, mọi người giúp đỡ tôi nhé <3",
-          imageUrl: "https://res.cloudinary.com/subarasuy/image/upload/v1716135269/cp0dnqxche5ivnry8lsc.jpg"
+          title: 'Cảm thấy thấy phẩn khởi.',
+          content: 'Tôi là thành viên mới, mọi người giúp đỡ tôi nhé <3',
+          imageUrl:
+            'https://res.cloudinary.com/subarasuy/image/upload/v1716135269/cp0dnqxche5ivnry8lsc.jpg',
         },
       });
+      await this.setOnlineStatus(user.id);
       return new ResponseClass(
         token,
         HttpStatusCode.SUCCESS,
@@ -88,13 +98,13 @@ export class AuthService {
             email: user.email,
             id: user.id,
           });
-          
+
           return new ResponseClass(
             token,
             HttpStatusCode.SUCCESS,
             'User logged in successfully',
           );
-        }else{
+        } else {
           throw new ForbiddenException("User's email or password is incorrect");
         }
       } else {
@@ -105,8 +115,7 @@ export class AuthService {
     }
   }
 
-
-  async convertToJwt(user: { email: string , id:string}): Promise<any> {
+  async convertToJwt(user: { email: string; id: string }): Promise<any> {
     const payload = { user };
     return {
       access_token: await this.jwtService.signAsync(payload, {
@@ -120,7 +129,7 @@ export class AuthService {
     };
   }
 
-  async loginWith365Office(data:any){
+  async loginWith365Office(data: any) {
     const email = data.email.toLowerCase();
     //delete last word of name
     const studentId = data.name.split(' ').slice(-1).join(' ');
@@ -139,9 +148,10 @@ export class AuthService {
             email: email,
             password: hashedPassword,
             name: name,
-            avatarUrl: "https://res.cloudinary.com/subarasuy/image/upload/v1716135390/prvieraqcydb8ehxjf8x.png",
+            avatarUrl:
+              'https://res.cloudinary.com/subarasuy/image/upload/v1716135390/prvieraqcydb8ehxjf8x.png',
             studentId: studentId,
-            schoolYear: parseInt(studentId.slice(0, 4))
+            schoolYear: parseInt(studentId.slice(0, 4)),
           },
         });
         delete user.password;
@@ -155,9 +165,10 @@ export class AuthService {
         await this.prisma.post.create({
           data: {
             userId: user.id,
-            title: "Cảm thấy thấy phẩn khởi.",
-            content:"Tôi là thành viên mới, mọi người giúp đỡ tôi nhé <3",
-            imageUrl: "https://res.cloudinary.com/subarasuy/image/upload/v1716135269/cp0dnqxche5ivnry8lsc.jpg"
+            title: 'Cảm thấy thấy phẩn khởi.',
+            content: 'Tôi là thành viên mới, mọi người giúp đỡ tôi nhé <3',
+            imageUrl:
+              'https://res.cloudinary.com/subarasuy/image/upload/v1716135269/cp0dnqxche5ivnry8lsc.jpg',
           },
         });
         return new ResponseClass(
@@ -171,23 +182,22 @@ export class AuthService {
           throw new ForbiddenException("User's email already exists");
         }
       }
-    }else{
-        delete user.password;
-        delete user.updatedAt;
-        if (user.name === null) delete user.name;
-        const token: any = await this.convertToJwt({
-          email: user.email,
-          id: user.id,
-        });
-        await this.updateRefreshToken(user.email, token.refresh_token);
-        return new ResponseClass(
-          token,
-          HttpStatusCode.SUCCESS,
-          'User logged in successfully',
-        );
+    } else {
+      delete user.password;
+      delete user.updatedAt;
+      if (user.name === null) delete user.name;
+      const token: any = await this.convertToJwt({
+        email: user.email,
+        id: user.id,
+      });
+      await this.updateRefreshToken(user.email, token.refresh_token);
+      return new ResponseClass(
+        token,
+        HttpStatusCode.SUCCESS,
+        'User logged in successfully',
+      );
     }
   }
-
 
   updateRefreshToken = async (
     email: string,
@@ -232,4 +242,20 @@ export class AuthService {
       );
     }
   }
-}  
+
+  async logout(email: string) {
+    const user = await this.prisma.user.findUnique({
+      where: {
+        email: email,
+      },
+    });
+    if (!user) throw new ForbiddenException("User's email is incorrect");
+    await this.updateRefreshToken(user.email, '');
+    await this.setOfflineStatus(user.id);
+    return new ResponseClass(
+      null,
+      HttpStatusCode.SUCCESS,
+      'User logged out successfully',
+    );
+  }
+}
