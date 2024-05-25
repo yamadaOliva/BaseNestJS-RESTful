@@ -280,7 +280,6 @@ export class FriendService {
 
   async getListPendingRequest(id: string, page: number, limit: number) {
     try {
-      console.log(id, page, limit);
       const requests = await this.prisma.friend.findMany({
         where: {
           friendId: id,
@@ -306,7 +305,6 @@ export class FriendService {
           createdAt: 'desc',
         },
       });
-      console.log(requests);
 
       // Save to Redis
       await this.redis.set(`pending_requests:${id}`, JSON.stringify(requests));
@@ -322,7 +320,6 @@ export class FriendService {
   }
 
   async searchFriend(id: string, keyword: string, type: string) {
-    console.log(id, keyword, type);
     try {
       const friends = await this.prisma.friend.findMany({
         where: {
@@ -404,7 +401,6 @@ export class FriendService {
           id: id,
         },
       });
-      console.log(user);
       const friends = await this.prisma.friend.findMany({
         where: {
           OR: [{ userId: id }, { friendId: id }],
@@ -470,7 +466,6 @@ export class FriendService {
               studentId: true,
             },
           });
-          console.log(friendList2);
           return new ResponseClass(
             friendList2,
             HttpStatusCode.SUCCESS,
@@ -577,6 +572,58 @@ export class FriendService {
         );
         return count;
       }
+    } catch (error) {
+      console.error(error);
+    }
+  }
+
+  async getOnlineFriends(id: string) {
+    try {
+      const friends = await this.prisma.friend.findMany({
+        where: {
+          OR: [{ userId: id }, { friendId: id }],
+          status: 'ACCEPTED',
+        },
+        select: {
+          userId: true,
+          friendId: true,
+        },
+      });
+      const friendIds = friends.map((friend) => {
+        if (friend.userId === id) {
+          return friend.friendId;
+        } else {
+          return friend.userId;
+        }
+      });
+      const onlineFriends = await this.redis.keys('online:*');
+      const onlineFriendsId = onlineFriends.map((friend) =>
+        friend.replace('online:', ''),
+      );
+      const onlineFriendsId2 = onlineFriendsId.filter((friend) =>
+        friendIds.includes(friend),
+      );
+      const onlineFriendsInfo = await this.prisma.user.findMany({
+        where: {
+          id: {
+            in: onlineFriendsId2,
+          },
+        },
+        select: {
+          id: true,
+          name: true,
+          avatarUrl: true,
+          district: true,
+          city: true,
+          class: true,
+          studentId: true,
+        },
+      });
+      return new ResponseClass(
+        onlineFriendsInfo,
+        HttpStatusCode.SUCCESS,
+        'Get online friends successfully',
+      );
     } catch (error) {
       console.error(error);
     }
