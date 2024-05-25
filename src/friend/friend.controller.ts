@@ -106,4 +106,20 @@ export class FriendController {
   ) {
     return await this.friendService.getOnlineFriends(user.user.id, page, limit);
   }
+
+  @UseGuards(JwtGuard)
+  @Get('/search/idorname/:page/:limit/:keyword')
+  async getFriendListByIdOrName(
+    @GetUser() user,
+    @Param('page', ParseIntPipe) page: number,
+    @Param('limit', ParseIntPipe) limit: number,
+    @Param('keyword') keyword: string,
+  ) {
+    return await this.friendService.getFriendByNameOrStudentId(
+      user.user.id,
+      keyword,
+      limit,
+      page,
+    );
+  }
 }

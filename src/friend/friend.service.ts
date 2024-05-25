@@ -637,4 +637,78 @@ export class FriendService {
       console.error(error);
     }
   }
+
+  async getFriendByNameOrStudentId(
+    id: string,
+    keyword: string,
+    per_page: number,
+    page: number,
+  ) {
+    try {
+      const friend1 = await this.prisma.friend.findMany({
+        where: {
+          userId: id,
+          status: 'ACCEPTED',
+        },
+        select: {
+          friendId: true,
+        },
+      });
+      const friend2 = await this.prisma.friend.findMany({
+        where: {
+          friendId: id,
+          status: 'ACCEPTED',
+        },
+        select: {
+          userId: true,
+        },
+      });
+      const friendIds = friend1.map((friend) => friend.friendId);
+      friendIds.push(...friend2.map((friend) => friend.userId));
+      
+      let friendList = await this.prisma.user.findMany({
+        where: {
+          id: { in: friendIds},
+          OR: [
+            {
+              name: {
+                contains: keyword,
+                mode: 'insensitive',
+              },
+            },
+            {
+              studentId: {
+                contains: keyword,
+                mode: 'insensitive',
+              },
+            },
+          ],
+        },
+        skip: (page - 1) * per_page,
+        take: per_page,
+        select: {
+          id: true,
+          name: true,
+          avatarUrl: true,
+          district: true,
+          city: true,
+          class: true,
+          studentId: true,
+        },
+      });
+      //online status
+      const promises = friendList.map(async (friend) => {
+        const isOnline = await this.redis.get(`online:${friend.id}`);
+        return { ...friend, isOnline: isOnline ? true : false };
+      });
+      friendList  = await Promise.all(promises);
+      return new ResponseClass(
+        friendList,
+        HttpStatusCode.SUCCESS,
+        'Get friend by name or studentId successfully',
+      );
+    } catch (error) {
+      console.error(error);
+    }
+  }
 }

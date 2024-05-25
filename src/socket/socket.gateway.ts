@@ -20,15 +20,12 @@ export class SocketGateway
   @WebSocketServer() server: Server;
 
   async afterInit(server: Server) {
-    //Do stuffs
   }
 
   async handleDisconnect(client: Socket) {
-    //Do stuffs
   }
 
   async handleConnection(client: Socket) {
-    //Do stuffs
   }
   @SubscribeMessage('message')
   async handleMessage(
@@ -37,11 +34,7 @@ export class SocketGateway
   ) {
     const roomName = 'user_' + payload.userID;
     this.server.to(roomName).emit('message', payload.message);
-    this.chatService.createMessage(
-      payload?.sourceID,
-      payload.userID,
-      payload.message,
-    );
+    
   }
   async sendMessageToAll(message: string) {
     this.server.emit('message', message);
