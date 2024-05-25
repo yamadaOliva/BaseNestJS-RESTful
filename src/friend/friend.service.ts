@@ -65,6 +65,13 @@ export class FriendService {
           friendId: true,
         },
       });
+      await this.prisma.messagePrivate.create({
+        data: {
+          toUserId: userId,
+          fromUserId: friendId,
+          content: 'Chào bạn mới',
+        },
+      });
       const nameFriend = await this.prisma.user.findUnique({
         where: {
           id: friendId,
@@ -577,7 +584,7 @@ export class FriendService {
     }
   }
 
-  async getOnlineFriends(id: string) {
+  async getOnlineFriends(id: string, page: number, per_page: number) {
     try {
       const friends = await this.prisma.friend.findMany({
         where: {
@@ -609,6 +616,8 @@ export class FriendService {
             in: onlineFriendsId2,
           },
         },
+        skip: (page - 1) * per_page,
+        take: per_page,
         select: {
           id: true,
           name: true,

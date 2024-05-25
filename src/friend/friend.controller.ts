@@ -29,7 +29,7 @@ export class FriendController {
 
   @UseGuards(JwtGuard)
   @Put('/reject')
-  async rejectFriend(@Body('idRequest')  idRequest: number) {
+  async rejectFriend(@Body('idRequest') idRequest: number) {
     return await this.friendService.rejectFriend(idRequest);
   }
 
@@ -98,8 +98,12 @@ export class FriendController {
   }
 
   @UseGuards(JwtGuard)
-  @Get('/list/online')
-  async getListOnline(@GetUser() user) {
-    return await this.friendService.getOnlineFriends(user.user.id);
+  @Get('/list/online/:page/:limit')
+  async getListOnline(
+    @GetUser() user,
+    @Param('page', ParseIntPipe) page: number,
+    @Param('limit', ParseIntPipe) limit: number,
+  ) {
+    return await this.friendService.getOnlineFriends(user.user.id, page, limit);
   }
 }

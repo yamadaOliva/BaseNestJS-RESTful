@@ -20,7 +20,6 @@ export class SocketGateway
   @WebSocketServer() server: Server;
 
   async afterInit(server: Server) {
-    console.log(server);
     //Do stuffs
   }
 
@@ -29,7 +28,6 @@ export class SocketGateway
   }
 
   async handleConnection(client: Socket) {
-    console.log(`Connected ${client.id}`);
     //Do stuffs
   }
   @SubscribeMessage('message')
@@ -37,8 +35,6 @@ export class SocketGateway
     client: Socket,
     payload: { userID: string; message: string; sourceID: string },
   ) {
-    console.log(payload);
-    console.log(payload?.userID);
     const roomName = 'user_' + payload.userID;
     this.server.to(roomName).emit('message', payload.message);
     this.chatService.createMessage(
@@ -55,7 +51,6 @@ export class SocketGateway
   }
   @SubscribeMessage('join')
   async handleJoinRoom(client: Socket, room: string) {
-    console.log(`Joining room: ${room}`);
     client.join(room);
     client.emit('joined', room);
   }
@@ -63,11 +58,9 @@ export class SocketGateway
   @SubscribeMessage('addFriend')
   async handleFriendRequest(
     client: Socket,
-    payload: { friendId: string; message: string },
+    payload: { friendId: string; type: string },
   ) {
     const roomName = 'user_' + payload.friendId;
-    console.log('addFriend', payload);
-    console.log('addFriend', payload.friendId);
     this.server.to(roomName).emit('notificationFriend', payload);
   }
 }
