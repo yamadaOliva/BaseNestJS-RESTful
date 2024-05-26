@@ -1,4 +1,4 @@
-import { ForbiddenException, Injectable ,Inject } from '@nestjs/common';
+import { ForbiddenException, Injectable, Inject } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { ResponseClass } from 'src/global';
 import { HttpStatusCode } from 'src/global/globalEnum';
@@ -6,7 +6,8 @@ import { ChatDTO } from './chatDTO';
 import { Redis } from 'ioredis';
 @Injectable()
 export class ChatService {
-  constructor(private prisma: PrismaService,
+  constructor(
+    private prisma: PrismaService,
     @Inject('REDIS_CLIENT') private readonly redis: Redis,
   ) {}
   async getChatByUserId(sourceId: string, targetId: string) {
@@ -84,19 +85,23 @@ export class ChatService {
           content: true,
           imageUrl: true,
           createdAt: true,
+          status: true,
           toUser: {
             select: {
+              id: true,
               name: true,
               avatarUrl: true,
               studentId: true,
+              class: true,
             },
           },
-
           fromUser: {
             select: {
+              id: true,
               name: true,
               avatarUrl: true,
               studentId: true,
+              class: true,
             },
           },
         },
@@ -109,20 +114,19 @@ export class ChatService {
       });
       //check online status
       const promises = list.map(async (item) => {
-        if(item.fromUserId === userId){
+        if (item.fromUserId === userId) {
           const online = await this.redis.get(`online:${item.toUserId}`);
           return {
             ...item,
-            online: online? true : false,
+            online: online ? true : false,
           };
         }
         const online = await this.redis.get(`online:${item.fromUserId}`);
         return {
           ...item,
-          online: online? true : false,
+          online: online ? true : false,
         };
-      }
-      );
+      });
       list = await Promise.all(promises);
       return new ResponseClass(list, HttpStatusCode.SUCCESS, 'List chat');
     } catch (error) {
