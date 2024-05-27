@@ -8,7 +8,7 @@ import {
 import { HttpStatusCode } from '../global/globalEnum';
 import { ResponseClass } from '../global';
 import { Redis } from 'ioredis';
-
+import { stringUtils } from 'src/utils';
 @Injectable()
 export class FriendService {
   constructor(
@@ -70,6 +70,7 @@ export class FriendService {
           toUserId: userId,
           fromUserId: friendId,
           content: 'Chào bạn mới',
+          subKey: stringUtils.Compare(userId, friendId),
         },
       });
       const nameFriend = await this.prisma.user.findUnique({
@@ -665,10 +666,10 @@ export class FriendService {
       });
       const friendIds = friend1.map((friend) => friend.friendId);
       friendIds.push(...friend2.map((friend) => friend.userId));
-      
+
       let friendList = await this.prisma.user.findMany({
         where: {
-          id: { in: friendIds},
+          id: { in: friendIds },
           OR: [
             {
               name: {
@@ -701,7 +702,7 @@ export class FriendService {
         const isOnline = await this.redis.get(`online:${friend.id}`);
         return { ...friend, isOnline: isOnline ? true : false };
       });
-      friendList  = await Promise.all(promises);
+      friendList = await Promise.all(promises);
       return new ResponseClass(
         friendList,
         HttpStatusCode.SUCCESS,

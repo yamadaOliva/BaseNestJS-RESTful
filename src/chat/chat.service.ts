@@ -4,44 +4,37 @@ import { ResponseClass } from 'src/global';
 import { HttpStatusCode } from 'src/global/globalEnum';
 import { ChatDTO } from './chatDTO';
 import { Redis } from 'ioredis';
+import { stringUtils } from 'src/utils';
 @Injectable()
 export class ChatService {
   constructor(
     private prisma: PrismaService,
     @Inject('REDIS_CLIENT') private readonly redis: Redis,
   ) {}
-  async getChatByUserId(sourceId: string, targetId: string) {
+  async getChatByUserId(
+    sourceId: string,
+    targetId: string,
+    limit: number,
+    page: number,
+  ) {
+    const subKey = stringUtils.Compare(sourceId, targetId);
     try {
       const list = await this.prisma.messagePrivate.findMany({
         where: {
-          OR: [
-            {
-              AND: [
-                {
-                  fromUserId: sourceId,
-                },
-                {
-                  toUserId: targetId,
-                },
-              ],
-            },
-            {
-              AND: [
-                {
-                  fromUserId: targetId,
-                },
-                {
-                  toUserId: sourceId,
-                },
-              ],
-            },
-          ],
+          subKey: subKey,
         },
+        take: limit,
+        skip: (page - 1) * limit,
         orderBy: {
-          createdAt: 'asc',
+          createdAt: 'desc',
         },
       });
-      return new ResponseClass(list, HttpStatusCode.SUCCESS, 'List chat');
+
+      return new ResponseClass(
+        list.reverse(),
+        HttpStatusCode.SUCCESS,
+        'List chat',
+      );
     } catch (error) {
       throw new ForbiddenException('Error');
     }
@@ -55,6 +48,7 @@ export class ChatService {
           fromUserId: data.fromUserId,
           toUserId: data.toUserId,
           imageUrl: data.imageUrl,
+          subKey: stringUtils.Compare(data.fromUserId, data.toUserId),
         },
       });
       return new ResponseClass(content, HttpStatusCode.SUCCESS, 'Message sent');
@@ -69,14 +63,9 @@ export class ChatService {
       //the last message of each conversation use distinct
       let list = await this.prisma.messagePrivate.findMany({
         where: {
-          OR: [
-            {
-              fromUserId: userId,
-            },
-            {
-              toUserId: userId,
-            },
-          ],
+          subKey: {
+            contains: userId,
+          },
         },
         select: {
           id: true,
@@ -110,7 +99,7 @@ export class ChatService {
         orderBy: {
           createdAt: 'desc',
         },
-        distinct: ['fromUserId', 'toUserId'],
+        distinct: ['subKey'],
       });
       //check online status
       const promises = list.map(async (item) => {
@@ -128,6 +117,7 @@ export class ChatService {
         };
       });
       list = await Promise.all(promises);
+      console.log('wtf ........', list);
       return new ResponseClass(list, HttpStatusCode.SUCCESS, 'List chat');
     } catch (error) {
       console.log(error);

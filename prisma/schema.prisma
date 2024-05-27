@@ -122,6 +122,7 @@ model MessagePrivate {
   fromUser   User     @relation("fromUser", fields: [fromUserId], references: [id], onDelete: Cascade)
   toUser     User     @relation("toUser", fields: [toUserId], references: [id], onDelete: Cascade)
   status     String   @default("UNREAD")
+  subKey     String   @default("")
 
   @@map("message_privates")
 }
@@ -180,6 +181,7 @@ model Friend {
   user      User     @relation("src", fields: [userId], references: [id])
   friend    User     @relation("target", fields: [friendId], references: [id])
   status    String   @default("PENDING")
+  subKey    String   @default("")
 
   @@map("friends")
 }

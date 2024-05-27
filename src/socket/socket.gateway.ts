@@ -19,29 +19,26 @@ export class SocketGateway
 
   @WebSocketServer() server: Server;
 
-  async afterInit(server: Server) {
-  }
+  async afterInit(server: Server) {}
 
-  async handleDisconnect(client: Socket) {
-  }
+  async handleDisconnect(client: Socket) {}
 
-  async handleConnection(client: Socket) {
-  }
+  async handleConnection(client: Socket) {}
   @SubscribeMessage('message')
   async handleMessage(
     client: Socket,
-    payload: { userID: string; message: string; sourceID: string },
+    data: {
+      content: string;
+      toUserId: string;
+      fromUserId: string;
+      imgUser: string;
+    },
   ) {
-    const roomName = 'user_' + payload.userID;
-    this.server.to(roomName).emit('message', payload.message);
-    
+    const roomName = 'user_' + data.toUserId;
+    console.log('sdfsdf', data);
+    this.server.to(roomName).emit('receive-message', data);
   }
-  async sendMessageToAll(message: string) {
-    this.server.emit('message', message);
-  }
-  async sendMessageToUser(userId: string, message: string) {
-    this.server.to(userId).emit('message', message);
-  }
+
   @SubscribeMessage('join')
   async handleJoinRoom(client: Socket, room: string) {
     client.join(room);
