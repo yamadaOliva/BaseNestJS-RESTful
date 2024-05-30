@@ -33,18 +33,26 @@ export class ChatController {
   }
 
   @UseGuards(JwtGuard)
-  @Get('/list/:targetId/:page/:limit')
+  @Get('/list/:targetId/:page/:limit/:seen')
   async getChatByUserId(
     @GetUser() user,
     @Param('targetId') targetId: string,
     @Param('page', ParseIntPipe) page: number,
     @Param('limit', ParseIntPipe) limit: number,
+    @Param('seen') seen: boolean,
   ) {
     return await this.chatService.getChatByUserId(
       user.user.id,
       targetId,
       limit,
       page,
+      seen,
     );
+  }
+
+  @UseGuards(JwtGuard)
+  @Get('/unseen')
+  async getUnseenMessage(@GetUser() user) {
+    return await this.chatService.getUnreadMessage(user.user.id);
   }
 }

@@ -45,6 +45,8 @@ model User {
   notifications       Notification[]
   statusAccount       String           @default("ACTIVE")
   statusOnline        String           @default("OFFLINE")
+  followsSrc          Follow[]         @relation("src")
+  followsTarget       Follow[]         @relation("target")
 
   @@map("users")
 }
@@ -198,4 +200,16 @@ model Notification {
   sourceAvatarUrl String?
 
   @@map("notifications")
+}
+
+model Follow {
+  id        Int      @id @default(autoincrement())
+  userId    String
+  followId  String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  user      User     @relation("src", fields: [userId], references: [id])
+  follow    User     @relation("target", fields: [followId], references: [id])
+
+  @@map("follows")
 }

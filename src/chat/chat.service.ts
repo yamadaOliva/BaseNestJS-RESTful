@@ -16,7 +16,11 @@ export class ChatService {
     targetId: string,
     limit: number,
     page: number,
+    seen: boolean,
   ) {
+    if (seen) {
+      await this.seenMessage(sourceId, stringUtils.Compare(sourceId, targetId));
+    }
     const subKey = stringUtils.Compare(sourceId, targetId);
     try {
       const list = await this.prisma.messagePrivate.findMany({
@@ -123,4 +127,45 @@ export class ChatService {
       console.log(error);
     }
   }
+
+  async seenMessage(userId: string, subKey: string) {
+    try {
+      const list = await this.prisma.messagePrivate.findMany({
+        where: {
+          subKey: subKey,
+          toUserId: userId,
+          status: 'UNREAD',
+        },
+      });
+      const promises = list.map(async (item) => {
+        await this.prisma.messagePrivate.update({
+          where: {
+            id: item.id,
+          },
+          data: {
+            status: 'READ',
+          },
+        });
+      });
+      await Promise.all(promises);
+      return new ResponseClass(null, HttpStatusCode.SUCCESS, 'Seen message');
+    } catch (error) {
+      console.log(error);
+    }
+  }
+
+  getUnreadMessage = async (userId: string) => {
+    try {
+      const list = await this.prisma.messagePrivate.findMany({
+        where: {
+          toUserId: userId,
+          status: 'UNREAD',
+        },
+        distinct: ['subKey'],
+      });
+      return new ResponseClass(list, HttpStatusCode.SUCCESS, 'List unread message');
+    } catch (error) {
+      console.log(error);
+    }
+  };
 }
