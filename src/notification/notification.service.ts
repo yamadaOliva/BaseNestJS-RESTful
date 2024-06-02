@@ -58,4 +58,22 @@ export class NotificationService {
       console.log(error);
     }
   }
+
+  async deleteNotification(userId: string, notificationId: string) {
+    try {
+      await this.prisma.notification.delete({
+        where: {
+          id: notificationId,
+          userId: userId,
+        },
+      });
+      return new ResponseClass(
+        null,
+        HttpStatusCode.SUCCESS,
+        'Notification deleted',
+      );
+    } catch (error) {
+      console.log(error);
+    }
+  }
 }

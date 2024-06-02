@@ -7,6 +7,7 @@ import {
   UseGuards,
   Param,
   ParseIntPipe,
+  Delete,
 } from '@nestjs/common';
 import { FriendService } from './friend.service';
 import { JwtGuard } from 'src/auth/guard';
@@ -121,5 +122,29 @@ export class FriendController {
       limit,
       page,
     );
+  }
+
+  @UseGuards(JwtGuard)
+  @Post('/follow')
+  async followFriend(@GetUser() user, @Body('idTarget') idTarget: string) {
+    return await this.friendService.followUser(user.user.id, idTarget);
+  }
+
+  @UseGuards(JwtGuard)
+  @Delete('/unfollow/:idTarget')
+  async unFollowFriend(@GetUser() user, @Param('idTarget') idTarget: string) {
+    return await this.friendService.unfollowUser(user.user.id, idTarget);
+  }
+
+  @UseGuards(JwtGuard)
+  @Get('check/:idTarget')
+  async checkFriend(@GetUser() user, @Param('idTarget') idTarget: string) {
+    return await this.friendService.checkFollowAndFriend(user.user.id, idTarget);
+  }
+
+  @UseGuards(JwtGuard)
+  @Delete('/delete/:idTarget')
+  async deleteFriend(@GetUser() user, @Param('idTarget') idTarget: string) {
+    return await this.friendService.unFriend(user.user.id, idTarget);
   }
 }

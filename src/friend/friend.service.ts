@@ -611,24 +611,30 @@ export class FriendService {
       const onlineFriendsId2 = onlineFriendsId.filter((friend) =>
         friendIds.includes(friend),
       );
-      const onlineFriendsInfo = await this.prisma.user.findMany({
-        where: {
-          id: {
-            in: onlineFriendsId2,
+      const onlineFriendsInfo = await this.prisma.user
+        .findMany({
+          where: {
+            id: {
+              in: onlineFriendsId2,
+            },
           },
-        },
-        skip: (page - 1) * per_page,
-        take: per_page,
-        select: {
-          id: true,
-          name: true,
-          avatarUrl: true,
-          district: true,
-          city: true,
-          class: true,
-          studentId: true,
-        },
-      });
+          skip: (page - 1) * per_page,
+          take: per_page,
+          select: {
+            id: true,
+            name: true,
+            avatarUrl: true,
+            district: true,
+            city: true,
+            class: true,
+            studentId: true,
+          },
+        })
+        .then((res) => {
+          return res.map((friend) => {
+            return { ...friend, online: true };
+          });
+        });
       return new ResponseClass(
         onlineFriendsInfo,
         HttpStatusCode.SUCCESS,
@@ -707,6 +713,120 @@ export class FriendService {
         friendList,
         HttpStatusCode.SUCCESS,
         'Get friend by name or studentId successfully',
+      );
+    } catch (error) {
+      console.error(error);
+    }
+  }
+
+  async followUser(id: string, idTarget: string) {
+    try {
+      const follow = await this.prisma.follow.findFirst({
+        where: {
+          userId: id,
+          followId: idTarget,
+        },
+      });
+      if (follow) {
+        throw new ForbiddenException('Follow request already exists');
+      }
+      await this.prisma.follow.create({
+        data: {
+          userId: id,
+          followId: idTarget,
+        },
+      });
+      return new ResponseClass(
+        null,
+        HttpStatusCode.SUCCESS,
+        'Follow user successfully',
+      );
+    } catch (error) {
+      console.error(error);
+    }
+  }
+
+  async unfollowUser(id: string, idTarget: string) {
+    try {
+      await this.prisma.follow.deleteMany({
+        where: {
+          userId: id,
+          followId: idTarget,
+        },
+      });
+      return new ResponseClass(
+        null,
+        HttpStatusCode.SUCCESS,
+        'Unfollow user successfully',
+      );
+    } catch (error) {
+      console.error(error);
+    }
+  }
+
+  async checkFollowAndFriend(id: string, idTarget: string) {
+    try {
+      const follow = await this.prisma.follow.findFirst({
+        where: {
+          userId: id,
+          followId: idTarget,
+        },
+      });
+      const friend = await this.prisma.friend.findFirst({
+        where: {
+          OR: [
+            {
+              userId: id,
+              friendId: idTarget,
+            },
+            {
+              userId: idTarget,
+              friendId: id,
+            },
+          ],
+        },
+        select: {
+          status: true,
+        },
+      });
+      return new ResponseClass(
+        { follow: follow ? true : false, friend: friend ? friend : false },
+        HttpStatusCode.SUCCESS,
+        'Check follow and friend successfully',
+      );
+    } catch (error) {
+      console.error(error);
+    }
+  }
+
+  async unFriend(id: string, idTarget: string) {
+    try {
+      const friend = await this.prisma.friend.findFirst({
+        where: {
+          OR: [
+            {
+              userId: id,
+              friendId: idTarget,
+            },
+            {
+              userId: idTarget,
+              friendId: id,
+            },
+          ],
+        },
+      });
+      if (!friend) {
+        throw new NotFoundException('Friend not found');
+      }
+      await this.prisma.friend.delete({
+        where: {
+          id: friend.id,
+        },
+      });
+      return new ResponseClass(
+        null,
+        HttpStatusCode.SUCCESS,
+        'Unfriend successfully',
       );
     } catch (error) {
       console.error(error);
