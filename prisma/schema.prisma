@@ -149,8 +149,7 @@ model Comment {
   content   String
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  left      Int      @default(0)
-  right     Int      @default(0)
+  fatherId  String?  @default("")
   user      User     @relation(fields: [userId], references: [id])
   userId    String
   postId    String
@@ -168,8 +167,8 @@ model Like {
   userId    String
   postId    String
   post      Post     @relation(fields: [postId], references: [id])
-  commentId String
-  comment   Comment  @relation(fields: [commentId], references: [id])
+  commentId String?  @default("")
+  comment   Comment? @relation(fields: [commentId], references: [id])
 
   @@map("likes")
 }
@@ -198,6 +197,7 @@ model Notification {
   status          String   @default("UNREAD")
   type            String   @default("POST")
   sourceAvatarUrl String?
+  meta            String?
 
   @@map("notifications")
 }
