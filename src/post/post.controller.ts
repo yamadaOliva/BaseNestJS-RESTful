@@ -22,7 +22,7 @@ export class PostController {
     });
   }
 
-  @Get('/get/:id')
+  @Get('/get/user/:id')
   async getPosts(@Param('id') id: string) {
     console.log(id);
     return await this.postService.getPostByUserId(id);
@@ -38,5 +38,33 @@ export class PostController {
   @Delete('/unlike/:postId')
   async unlikePost(@GetUser() user, @Param('postId') postId: string) {
     return await this.postService.unlikePost(user.user.id, postId);
+  }
+
+  @UseGuards(JwtGuard)
+  @Get('/get/:id')
+  async getPostById(@Param('id') id: string) {
+    return await this.postService.getPostById(id);
+  }
+
+  @UseGuards(JwtGuard)
+  @Post('/comment')
+  async commentOnPost(@GetUser() user, @Body() data) {
+    return await this.postService.createComment(
+      user.user.id,
+      data.postId,
+      data.content,
+    );
+  }
+
+  @UseGuards(JwtGuard)
+  @Post('/comment/like')
+  async likeComment(@GetUser() user, @Body() data) {
+    return await this.postService.likeComment(user.user.id, data.commentId);
+  }
+
+  @UseGuards(JwtGuard)
+  @Delete('/comment/unlike/:commentId')
+  async unlikeComment(@GetUser() user, @Param('commentId') commentId: string) {
+    return await this.postService.unlikeComment(user.user.id, commentId);
   }
 }

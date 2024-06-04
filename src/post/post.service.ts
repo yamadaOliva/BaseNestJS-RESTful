@@ -62,6 +62,17 @@ export class PostService {
                   avatarUrl: true,
                 },
               },
+              likes: {
+                include: {
+                  user: {
+                    select: {
+                      id: true,
+                      name: true,
+                      avatarUrl: true,
+                    },
+                  },
+                },
+              },
             },
             orderBy: {
               createdAt: 'desc',
@@ -227,11 +238,11 @@ export class PostService {
 
   async likeComment(userId: string, commentId: string) {
     try {
-    const comment = await this.prisma.comment.findUnique({
-      where: {
-        id: commentId,
-      },
-    });
+      const comment = await this.prisma.comment.findUnique({
+        where: {
+          id: commentId,
+        },
+      });
       const user = await this.prisma.user.findUnique({
         where: {
           id: userId,
@@ -257,12 +268,11 @@ export class PostService {
     }
   }
 
-  async unlikeComment(userId: string, postId: string, commentId: string) {
+  async unlikeComment(userId: string, commentId: string) {
     try {
       const like = await this.prisma.like.findFirst({
         where: {
           userId: userId,
-          postId: postId,
           commentId: commentId,
         },
       });
@@ -353,11 +363,10 @@ export class PostService {
         },
       });
       //commented user
-      
+
       return new ResponseClass(reply, 200, 'Reply created successfully');
     } catch (error) {
       console.log(error);
     }
   }
-
 }
