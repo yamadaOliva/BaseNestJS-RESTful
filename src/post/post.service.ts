@@ -79,6 +79,9 @@ export class PostService {
             },
           },
           likes: {
+            where: {
+              commentId: null,
+            },
             include: {
               user: {
                 select: {

@@ -59,6 +59,7 @@ export class PostController {
   @UseGuards(JwtGuard)
   @Post('/comment/like')
   async likeComment(@GetUser() user, @Body() data) {
+    console.log(data);
     return await this.postService.likeComment(user.user.id, data.commentId);
   }
 
@@ -66,5 +67,15 @@ export class PostController {
   @Delete('/comment/unlike/:commentId')
   async unlikeComment(@GetUser() user, @Param('commentId') commentId: string) {
     return await this.postService.unlikeComment(user.user.id, commentId);
+  }
+
+  @UseGuards(JwtGuard)
+  @Post('/comment/reply')
+  async replyComment(@GetUser() user, @Body() data) {
+    return await this.postService.replyComment(
+      user.user.id,
+      data.commentId,
+      data.content,
+    );
   }
 }
