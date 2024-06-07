@@ -7,13 +7,14 @@ import * as argon from 'argon2';
 import { JwtService } from '@nestjs/jwt';
 import * as crypto from 'crypto';
 import { Redis } from 'ioredis';
-
+import { MailerService } from '@nest-modules/mailer';
 @Injectable()
 export class AuthService {
   constructor(
     private prisma: PrismaService,
     private jwtService: JwtService,
     @Inject('REDIS_CLIENT') private readonly redis: Redis,
+    private mailerService: MailerService,
   ) {}
 
   async setOnlineStatus(id :string) {
@@ -51,6 +52,7 @@ export class AuthService {
       });
       delete user.password;
       delete user.updatedAt;
+
       if (user.name === null) delete user.name;
       const token: any = await this.convertToJwt({
         email: user.email,
@@ -64,6 +66,14 @@ export class AuthService {
           content: 'Tôi là thành viên mới, mọi người giúp đỡ tôi nhé <3',
           imageUrl:
             'https://res.cloudinary.com/subarasuy/image/upload/v1716135269/cp0dnqxche5ivnry8lsc.jpg',
+        },
+      });
+      await this.mailerService.sendMail({
+        to: user.email,
+        subject: 'Welcome to Social Network',
+        template: 'welcome',
+        context: {
+          name: user.name,
         },
       });
       await this.setOnlineStatus(user.id);

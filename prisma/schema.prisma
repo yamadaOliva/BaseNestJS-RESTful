@@ -10,6 +10,10 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+generator dbml {
+  provider = "prisma-dbml-generator"
+}
+
 model User {
   id                  String           @id @default(uuid())
   email               String           @unique
@@ -27,8 +31,6 @@ model User {
   district            String?
   Birthday            DateTime?        @default(now())
   schoolYear          Int              @default(2020)
-  chatroomUsers       ChatroomUser[]
-  messages            MessageGroup[]
   messagesPrivateFrom MessagePrivate[] @relation("fromUser")
   messagesPrivateTo   MessagePrivate[] @relation("toUser")
   refreshToken        String?
@@ -47,6 +49,10 @@ model User {
   statusOnline        String           @default("OFFLINE")
   followsSrc          Follow[]         @relation("src")
   followsTarget       Follow[]         @relation("target")
+  groupMembers        GroupMember[]
+  Report              Report[]         @relation("reported")
+  ReportSrc           Report[]         @relation("srcreport")
+  Group               Group[]
 
   @@map("users")
 }
@@ -71,46 +77,6 @@ model classCount {
   count      Int
 
   @@map("class_count")
-}
-
-model Chatroom {
-  id            String         @id @default(uuid())
-  name          String
-  createdAt     DateTime       @default(now())
-  updatedAt     DateTime       @updatedAt
-  chatroomUsers ChatroomUser[]
-  messages      MessageGroup[]
-
-  @@map("chatrooms")
-}
-
-model ChatroomUser {
-  id         Int      @id @default(autoincrement())
-  userId     String
-  chatroomId String
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
-  user       User     @relation(fields: [userId], references: [id])
-  chatroom   Chatroom @relation(fields: [chatroomId], references: [id])
-  avatarUrl  String?
-  role       String   @default("MEMBER")
-  status     String   @default("UNREAD")
-
-  @@map("chatroom_users")
-}
-
-model MessageGroup {
-  id         Int      @id @default(autoincrement())
-  content    String
-  imageUrl   String?
-  userId     String
-  chatroomId String
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
-  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  chatroom   Chatroom @relation(fields: [chatroomId], references: [id], onDelete: Cascade)
-
-  @@map("message_groups")
 }
 
 model MessagePrivate {
@@ -140,6 +106,10 @@ model Post {
   userId    String
   comments  Comment[]
   likes     Like[]
+  type      String    @default("PERSONAL")
+  groupId   String?
+  group     Group?    @relation(fields: [groupId], references: [id])
+  reports   Report[]
 
   @@map("posts")
 }
@@ -155,6 +125,8 @@ model Comment {
   postId    String
   post      Post     @relation(fields: [postId], references: [id])
   likes     Like[]
+  reports   Report[]
+  GroupId   String?  @default("")
 
   @@map("comments")
 }
@@ -212,4 +184,47 @@ model Follow {
   follow    User     @relation("target", fields: [followId], references: [id])
 
   @@map("follows")
+}
+
+model GroupMember {
+  id        Int      @id @default(autoincrement())
+  userId    String
+  groupId   String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  user      User     @relation(fields: [userId], references: [id])
+  group     Group    @relation(fields: [groupId], references: [id])
+
+  @@map("group_members")
+}
+
+model Group {
+  id        String        @id @default(uuid())
+  name      String
+  OwnerId   String
+  owner     User          @relation(fields: [OwnerId], references: [id])
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+  members   GroupMember[]
+  posts     Post[]
+
+  @@map("groups")
+}
+
+model Report {
+  id           String   @id @default(uuid())
+  content      String
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  userId       String
+  user         User     @relation("srcreport", fields: [userId], references: [id])
+  postId       String
+  type         String   @default("POST")
+  reportedId   String
+  userReported User     @relation("reported", fields: [reportedId], references: [id])
+  post         Post?    @relation(fields: [postId], references: [id])
+  commentId    String?  @default("")
+  comment      Comment? @relation(fields: [commentId], references: [id])
+
+  @@map("reports")
 }

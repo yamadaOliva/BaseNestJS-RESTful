@@ -1,0 +1,248 @@
+//// ------------------------------------------------------
+//// THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
+//// ------------------------------------------------------
+
+Table users {
+  id String [pk]
+  email String [unique, not null]
+  name String
+  password String [not null]
+  createdAt DateTime [default: `now()`, not null]
+  updatedAt DateTime [not null]
+  studentId String [unique, not null]
+  major majors [not null]
+  majorId Int [not null, default: 1]
+  class String [not null, default: '']
+  interest String[] [not null]
+  liveIn String [default: 'Ha Noi']
+  city String
+  district String
+  Birthday DateTime [default: `now()`]
+  schoolYear Int [not null, default: 2020]
+  messagesPrivateFrom message_privates [not null]
+  messagesPrivateTo message_privates [not null]
+  refreshToken String
+  resetToken String
+  avatarUrl String
+  gender String
+  phone String
+  Posts posts [not null]
+  Comments comments [not null]
+  Likes likes [not null]
+  role String [not null, default: 'USERS']
+  friendsSrc friends [not null]
+  friendsTarget friends [not null]
+  notifications notifications [not null]
+  statusAccount String [not null, default: 'ACTIVE']
+  statusOnline String [not null, default: 'OFFLINE']
+  followsSrc follows [not null]
+  followsTarget follows [not null]
+  groupMembers group_members [not null]
+  Report reports [not null]
+  ReportSrc reports [not null]
+  Group groups [not null]
+}
+
+Table majors {
+  id Int [pk, increment]
+  name String [not null]
+  acronym String [not null]
+  createdAt DateTime [default: `now()`, not null]
+  updatedAt DateTime [not null]
+  users users [not null]
+  classCount class_count [not null]
+}
+
+Table class_count {
+  id Int [pk, increment]
+  majorId Int [not null]
+  major majors [not null]
+  schoolYear Int [not null]
+  count Int [not null]
+}
+
+Table message_privates {
+  id Int [pk, increment]
+  content String [not null]
+  imageUrl String
+  fromUserId String [not null]
+  toUserId String [not null]
+  createdAt DateTime [default: `now()`, not null]
+  updatedAt DateTime [not null]
+  fromUser users [not null]
+  toUser users [not null]
+  status String [not null, default: 'UNREAD']
+  subKey String [not null, default: '']
+}
+
+Table posts {
+  id String [pk]
+  title String [not null]
+  content String [not null]
+  imageUrl String
+  createdAt DateTime [default: `now()`, not null]
+  updatedAt DateTime [not null]
+  user users [not null]
+  userId String [not null]
+  comments comments [not null]
+  likes likes [not null]
+  type String [not null, default: 'PERSONAL']
+  groupId String
+  group groups
+  reports reports [not null]
+}
+
+Table comments {
+  id String [pk]
+  content String [not null]
+  createdAt DateTime [default: `now()`, not null]
+  updatedAt DateTime [not null]
+  fatherId String [default: '']
+  user users [not null]
+  userId String [not null]
+  postId String [not null]
+  post posts [not null]
+  likes likes [not null]
+  reports reports [not null]
+  GroupId String [default: '']
+}
+
+Table likes {
+  id String [pk]
+  createdAt DateTime [default: `now()`, not null]
+  updatedAt DateTime [not null]
+  user users [not null]
+  userId String [not null]
+  postId String [not null]
+  post posts [not null]
+  commentId String [default: '']
+  comment comments
+}
+
+Table friends {
+  id Int [pk, increment]
+  userId String [not null]
+  friendId String [not null]
+  createdAt DateTime [default: `now()`, not null]
+  updatedAt DateTime [not null]
+  user users [not null]
+  friend users [not null]
+  status String [not null, default: 'PENDING']
+  subKey String [not null, default: '']
+}
+
+Table notifications {
+  id String [pk]
+  content String [not null]
+  createdAt DateTime [default: `now()`, not null]
+  updatedAt DateTime [not null]
+  userId String [not null]
+  user users [not null]
+  status String [not null, default: 'UNREAD']
+  type String [not null, default: 'POST']
+  sourceAvatarUrl String
+  meta String
+}
+
+Table follows {
+  id Int [pk, increment]
+  userId String [not null]
+  followId String [not null]
+  createdAt DateTime [default: `now()`, not null]
+  updatedAt DateTime [not null]
+  user users [not null]
+  follow users [not null]
+}
+
+Table group_members {
+  id Int [pk, increment]
+  userId String [not null]
+  groupId String [not null]
+  createdAt DateTime [default: `now()`, not null]
+  updatedAt DateTime [not null]
+  user users [not null]
+  group groups [not null]
+}
+
+Table groups {
+  id String [pk]
+  name String [not null]
+  OwnerId String [not null]
+  owner users [not null]
+  createdAt DateTime [default: `now()`, not null]
+  updatedAt DateTime [not null]
+  members group_members [not null]
+  posts posts [not null]
+}
+
+Table reports {
+  id String [pk]
+  content String [not null]
+  createdAt DateTime [default: `now()`, not null]
+  updatedAt DateTime [not null]
+  userId String [not null]
+  user users [not null]
+  postId String [not null]
+  type String [not null, default: 'POST']
+  reportedId String [not null]
+  userReported users [not null]
+  post posts
+  commentId String [default: '']
+  comment comments
+}
+
+Table src {
+  friendssrcId Int [ref: > friends.id]
+  followssrcId Int [ref: > follows.id]
+}
+
+Table target {
+  friendstargetId Int [ref: > friends.id]
+  followstargetId Int [ref: > follows.id]
+}
+
+Ref: users.majorId > majors.id
+
+Ref: class_count.majorId > majors.id
+
+Ref: message_privates.fromUserId > users.id [delete: Cascade]
+
+Ref: message_privates.toUserId > users.id [delete: Cascade]
+
+Ref: posts.userId > users.id
+
+Ref: posts.groupId > groups.id
+
+Ref: comments.userId > users.id
+
+Ref: comments.postId > posts.id
+
+Ref: likes.userId > users.id
+
+Ref: likes.postId > posts.id
+
+Ref: likes.commentId > comments.id
+
+Ref: friends.userId > users.id
+
+Ref: friends.friendId > users.id
+
+Ref: notifications.userId > users.id
+
+Ref: follows.userId > users.id
+
+Ref: follows.followId > users.id
+
+Ref: group_members.userId > users.id
+
+Ref: group_members.groupId > groups.id
+
+Ref: groups.OwnerId > users.id
+
+Ref: reports.userId > users.id
+
+Ref: reports.reportedId > users.id
+
+Ref: reports.postId > posts.id
+
+Ref: reports.commentId > comments.id
