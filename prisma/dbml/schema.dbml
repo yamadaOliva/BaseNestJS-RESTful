@@ -33,14 +33,23 @@ Table users {
   friendsSrc friends [not null]
   friendsTarget friends [not null]
   notifications notifications [not null]
-  statusAccount String [not null, default: 'ACTIVE']
-  statusOnline String [not null, default: 'OFFLINE']
+  statusAccount String [not null, default: 'INACTIVE']
   followsSrc follows [not null]
   followsTarget follows [not null]
   groupMembers group_members [not null]
   Report reports [not null]
   ReportSrc reports [not null]
   Group groups [not null]
+  ActiveCode active_codes
+}
+
+Table active_codes {
+  id Int [pk, increment]
+  code String [not null]
+  userId String [unique, not null]
+  createdAt DateTime [default: `now()`, not null]
+  updatedAt DateTime [not null]
+  user users [not null]
 }
 
 Table majors {
@@ -202,6 +211,8 @@ Table target {
 }
 
 Ref: users.majorId > majors.id
+
+Ref: active_codes.userId - users.id
 
 Ref: class_count.majorId > majors.id
 

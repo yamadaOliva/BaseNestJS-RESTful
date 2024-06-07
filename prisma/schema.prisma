@@ -45,16 +45,27 @@ model User {
   friendsSrc          Friend[]         @relation("src")
   friendsTarget       Friend[]         @relation("target")
   notifications       Notification[]
-  statusAccount       String           @default("ACTIVE")
-  statusOnline        String           @default("OFFLINE")
+  statusAccount       String           @default("INACTIVE")
   followsSrc          Follow[]         @relation("src")
   followsTarget       Follow[]         @relation("target")
   groupMembers        GroupMember[]
   Report              Report[]         @relation("reported")
   ReportSrc           Report[]         @relation("srcreport")
   Group               Group[]
+  ActiveCode          ActiveCode?
 
   @@map("users")
+}
+
+model ActiveCode {
+  id        Int      @id @default(autoincrement())
+  code      String
+  userId    String   @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  user      User     @relation(fields: [userId], references: [id])
+
+  @@map("active_codes")
 }
 
 model Major {

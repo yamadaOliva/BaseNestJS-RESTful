@@ -6,6 +6,7 @@ import {
   Headers,
   Get,
   Put,
+  Param,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { AuthDTO } from './dto/auth.dto';
@@ -38,5 +39,20 @@ export class AuthController {
   @Put('/logout')
   logout(@GetUser() user: any): Promise<any> {
     return this.authService.logout(user.user.email);
+  }
+
+  @Get('/active/:token')
+  active(@Param('token') token: string): Promise<any> {
+    return this.authService.activeAccount(token);
+  }
+
+  @Post('/forgotPassword')
+  forgotPassword(@Body() body: any): Promise<any> {
+    return this.authService.forgotPassword(body.email);
+  }
+
+  @Post('/resetPassword')
+  resetPassword(@Body() body: any): Promise<any> {
+    return this.authService.resetPassword(body.token, body.password);
   }
 }

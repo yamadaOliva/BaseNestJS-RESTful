@@ -43,6 +43,7 @@ export class FriendService {
           status: 'PENDING',
         },
       });
+      // save to Redis
       return new ResponseClass(
         null,
         HttpStatusCode.SUCCESS,
@@ -98,7 +99,9 @@ export class FriendService {
           sourceAvatarUrl: nameFriend.avatarUrl,
         },
       });
-
+      //save to Redis
+      await this.redis.sadd(`friends:${userId}:test`, friendId);
+      await this.redis.sadd(`friends:${friendId}:test`, userId);
       return new ResponseClass(
         null,
         HttpStatusCode.SUCCESS,

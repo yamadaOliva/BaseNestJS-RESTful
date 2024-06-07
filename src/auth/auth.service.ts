@@ -7,26 +7,27 @@ import * as argon from 'argon2';
 import { JwtService } from '@nestjs/jwt';
 import * as crypto from 'crypto';
 import { Redis } from 'ioredis';
-import { MailerService } from '@nest-modules/mailer';
+import { Queue } from 'bull';
+import { InjectQueue } from '@nestjs/bull';
+
 @Injectable()
 export class AuthService {
   constructor(
     private prisma: PrismaService,
     private jwtService: JwtService,
     @Inject('REDIS_CLIENT') private readonly redis: Redis,
-    private mailerService: MailerService,
+    @InjectQueue('sendMail') private readonly sendMailQueue: Queue,
   ) {}
 
-  async setOnlineStatus(id :string) {
+  async setOnlineStatus(id: string) {
     await this.redis.set(`online:${id}`, 'true', 'EX', 6000);
   }
 
   setOfflineStatus = async (id: string) => {
     await this.redis.del(`online:${id}`);
-  }
+  };
 
   async register(authDTO: AuthDTO) {
-    console.log(authDTO);
     const hashedPassword = await argon.hash(authDTO.password);
     //convert schoolYear to number
     const schoolYearPtr = parseInt(authDTO.schoolYear);
@@ -69,18 +70,24 @@ export class AuthService {
             'https://res.cloudinary.com/subarasuy/image/upload/v1716135269/cp0dnqxche5ivnry8lsc.jpg',
         },
       });
-      await this.mailerService.sendMail({
-        to: user.email,
-        subject: 'Welcome to Social Network',
-        template: 'welcome',
-        context: {
-          name: user.name,
+      const randomToken = crypto.randomBytes(64).toString('hex');
+      const activeToken = await argon.hash(user.email + randomToken);
+      await this.prisma.activeCode.create({
+        data: {
+          userId: user.id,
+          code: activeToken,
         },
       });
+      await this.sendMailQueue.add('register', {
+        email: user.email,
+        name: user.name,
+        activeToken: activeToken,
+      });
+
       await this.setOnlineStatus(user.id);
       return new ResponseClass(
         token,
-        HttpStatusCode.SUCCESS,
+        HttpStatusCode.ERROR,
         "User's account has been created successfully",
       );
     } catch (error) {
@@ -163,6 +170,7 @@ export class AuthService {
               'https://res.cloudinary.com/subarasuy/image/upload/v1716135390/prvieraqcydb8ehxjf8x.png',
             studentId: studentId,
             schoolYear: parseInt(studentId.slice(0, 4)),
+            statusAccount: 'ACTIVE',
           },
         });
         delete user.password;
@@ -194,6 +202,17 @@ export class AuthService {
         }
       }
     } else {
+      if (user.statusAccount === 'INACTIVE') {
+        //update status account
+        await this.prisma.user.update({
+          where: {
+            email: email,
+          },
+          data: {
+            statusAccount: 'ACTIVE',
+          },
+        });
+      }
       delete user.password;
       delete user.updatedAt;
       if (user.name === null) delete user.name;
@@ -267,6 +286,93 @@ export class AuthService {
       null,
       HttpStatusCode.SUCCESS,
       'User logged out successfully',
+    );
+  }
+
+  async activeAccount(code: string) {
+    try {
+      const activeCode = await this.prisma.activeCode.findFirst({
+        where: {
+          code: code,
+        },
+      });
+      if (!activeCode) {
+        return new ResponseClass(
+          null,
+          HttpStatusCode.ERROR,
+          'The code is incorrect',
+        );
+      }
+      await this.prisma.user.update({
+        where: {
+          id: activeCode.userId,
+        },
+        data: {
+          statusAccount: 'ACTIVE',
+        },
+      });
+      await this.prisma.activeCode.delete({
+        where: {
+          id: activeCode.id,
+        },
+      });
+      return new ResponseClass(
+        null,
+        HttpStatusCode.SUCCESS,
+        'User account has been activated successfully',
+      );
+    } catch (error) {
+      console.log(error);
+    }
+  }
+
+  async forgotPassword(email: string) {
+    const user = await this.prisma.user.findUnique({
+      where: {
+        email: email,
+      },
+    });
+    if (!user) {
+      return new ResponseClass(null, HttpStatusCode.ERROR, 'User not found');
+    }
+    const randomToken = crypto.randomBytes(64).toString('hex');
+    const resetToken = await argon.hash(user.email + randomToken);
+    await this.redis.set(resetToken, user.id, 'EX', 6000);
+    await this.sendMailQueue.add('forgotPassword', {
+      email: user.email,
+      name: user.name,
+      resetToken: resetToken,
+    });
+    return new ResponseClass(
+      null,
+      HttpStatusCode.SUCCESS,
+      'Please check your email to reset password',
+    );
+  }
+
+  async resetPassword(token: string, password: string) {
+    const userId = await this.redis.get(token);
+    if (!userId) {
+      return new ResponseClass(
+        null,
+        HttpStatusCode.ERROR,
+        'The token is incorrect',
+      );
+    }
+    const hashedPassword = await argon.hash(password);
+    await this.prisma.user.update({
+      where: {
+        id: userId,
+      },
+      data: {
+        password: hashedPassword,
+      },
+    });
+    await this.redis.del(token);
+    return new ResponseClass(
+      null,
+      HttpStatusCode.SUCCESS,
+      'Password has been reset successfully',
     );
   }
 }
