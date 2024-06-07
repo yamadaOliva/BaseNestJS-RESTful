@@ -26,6 +26,7 @@ export class AuthService {
   }
 
   async register(authDTO: AuthDTO) {
+    console.log(authDTO);
     const hashedPassword = await argon.hash(authDTO.password);
     //convert schoolYear to number
     const schoolYearPtr = parseInt(authDTO.schoolYear);
