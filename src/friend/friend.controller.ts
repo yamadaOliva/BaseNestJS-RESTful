@@ -147,4 +147,9 @@ export class FriendController {
   async deleteFriend(@GetUser() user, @Param('idTarget') idTarget: string) {
     return await this.friendService.unFriend(user.user.id, idTarget);
   }
+
+  @Get('/list/:id')
+  async getFriendListFromId(@Param('id') id: string) {
+    return await this.friendService.getFriendById(id);
+  }
 }

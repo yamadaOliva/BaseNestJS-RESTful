@@ -45,6 +45,25 @@ export class SocketGateway
     client.emit('joined', room);
   }
 
+  @SubscribeMessage('joinPost')
+  async handleJoinPost(client: Socket, room: string) {
+    client.join(room);
+    console.log('room', room);
+    client.emit('joinedPost', room);
+  }
+
+  @SubscribeMessage('comment')
+  async handleComment(client: Socket, room: any) {
+    console.log('comment', room);
+    this.server.to(room).emit('comment', "refresh");
+  }
+
+  @SubscribeMessage('notification')
+  async handleNotification(client: Socket, room: string) {
+    console.log('notification', room);
+    this.server.to(room).emit('notification', 'refresh');
+  }
+
   @SubscribeMessage('addFriend')
   async handleFriendRequest(
     client: Socket,

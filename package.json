@@ -23,7 +23,8 @@
     "prisma:dev": "prisma migrate dev",
     "db:dev:restart": "yarn db:dev:remove && yarn db:dev:up && yarn prisma:dev",
     "prisma:migrate:deploy": "prisma migrate deploy",
-    "seed": "ts-node --compiler-options '{\"module\":\"commonjs\"}' ./src/prisma/prisma.seed.ts"
+    "seed": "ts-node --compiler-options '{\"module\":\"commonjs\"}' ./src/prisma/prisma.seed.ts",
+    "seedUser": "ts-node --compiler-options '{\"module\":\"commonjs\"}' ./src/prisma/user.seed.ts"
   },
   "dependencies": {
     "@nest-modules/mailer": "^1.3.22",

@@ -1,5 +1,125 @@
 import { PrismaService } from './prisma.service';
 const prisma = new PrismaService();
+
+interface StudentRecord {
+  name: string;
+  studentId: string;
+  email: string;
+}
+
+function generateVietnameseName(): string {
+  const lastNames = [
+    'Nguyễn',
+    'Trần',
+    'Lê',
+    'Phạm',
+    'Huỳnh',
+    'Hoàng',
+    'Phan',
+    'Vũ',
+    'Đặng',
+    'Bùi',
+  ];
+  const middleNames = [
+    'Văn',
+    'Thị',
+    'Hữu',
+    'Minh',
+    'Thanh',
+    'Công',
+    'Xuân',
+    'Đình',
+    'Ngọc',
+    'Thế',
+  ];
+  const firstNames = [
+    'Anh',
+    'Bình',
+    'Chi',
+    'Dũng',
+    'Em',
+    'Phúc',
+    'Giang',
+    'Hương',
+    'Khôi',
+    'Lan',
+  ];
+
+  const lastName = lastNames[Math.floor(Math.random() * lastNames.length)];
+  const middleName =
+    middleNames[Math.floor(Math.random() * middleNames.length)];
+  const firstName = firstNames[Math.floor(Math.random() * firstNames.length)];
+
+  return `${lastName} ${middleName} ${firstName}`;
+}
+
+function generateStudentId(): string {
+  const schoolYears = ['2017', '2018', '2019', '2020', '2021'];
+  return (
+    schoolYears[Math.floor(Math.random() * schoolYears.length)] +
+    `${Math.floor(1000 + Math.random() * 9000).toString()}`
+  );
+}
+
+function removeVietnameseTones(str: string): string {
+  const accentsMap = {
+    a: 'àáạảãâầấậẩẫăằắặẳẵ',
+    e: 'èéẹẻẽêềếệểễ',
+    i: 'ìíịỉĩ',
+    o: 'òóọỏõôồốộổỗơờớợởỡ',
+    u: 'ùúụủũưừứựửữ',
+    y: 'ỳýỵỷỹ',
+    d: 'đ',
+    A: 'ÀÁẠẢÃÂẦẤẬẨẪĂẰẮẶẲẴ',
+    E: 'ÈÉẸẺẼÊỀẾỆỂỄ',
+    I: 'ÌÍỊỈĨ',
+    O: 'ÒÓỌỎÕÔỒỐỘỔỖƠỜỚỢỞỠ',
+    U: 'ÙÚỤỦŨƯỪỨỰỬỮ',
+    Y: 'ỲÝỴỶỸ',
+    D: 'Đ',
+  };
+
+  for (let regex in accentsMap) {
+    const chars = accentsMap[regex];
+    for (let char of chars) {
+      str = str.replace(new RegExp(char, 'g'), regex);
+    }
+  }
+
+  return str;
+}
+
+function generateEmail(name: string, studentId: string): string {
+  const nameParts = name.split(' ');
+  const lastName = removeVietnameseTones(nameParts[0]).toLowerCase();
+  const middleNameInitial = removeVietnameseTones(
+    nameParts[1][0],
+  ).toLowerCase();
+  const firstName = removeVietnameseTones(
+    nameParts[nameParts.length - 1],
+  ).toLowerCase();
+  const shortStudentId = studentId.slice(2);
+  return `${firstName}.${lastName[0]}${middleNameInitial}${shortStudentId}@sis.hust.edu.vn`;
+}
+
+function generateStudentRecords(count: number): StudentRecord[] {
+  const records: StudentRecord[] = [];
+
+  for (let i = 0; i < count; i++) {
+    const name = generateVietnameseName();
+    const studentId = generateStudentId();
+    const email = generateEmail(name, studentId);
+
+    records.push({
+      name,
+      studentId,
+      email,
+    });
+  }
+
+  return records;
+}
+
 async function main() {
   interface ProgramInfo {
     name: string;
@@ -112,7 +232,6 @@ async function main() {
     }
   }
   try {
-    await prisma.user.deleteMany();
     await prisma.major.deleteMany();
     await prisma.major.createMany({
       data: programsSortedByName,
@@ -123,7 +242,44 @@ async function main() {
   } catch (error) {
     console.log(error);
   }
+  const studentRecords = generateStudentRecords(100);
+  const gender = ['Nam', 'Nữ', 'Khác'];
+  try {
+    const promises = studentRecords.map((record) => {
+      const majorId = Math.floor(Math.random() * programs.length) + 1;
+      return prisma.user.create({
+        data: {
+          email: record.email,
+          name: record.name,
+          studentId: record.studentId,
+          password:
+            '$argon2id$v=19$m=65536,t=3,p=4$h09a+TwvFzGorR/XtyM4eA$j1AX+ogfgxpM+couvseOK/wEusWAtJWtEzEy70Kzgqc',
+          role: 'USER',
+          Birthday: new Date(),
+          avatarUrl:
+            'https://res.cloudinary.com/subarasuy/image/upload/v1716135390/prvieraqcydb8ehxjf8x.png',
+          majorId: majorId,
+          class:
+            programs[majorId - 1].acronym +
+            Math.floor(Math.random() * 5 + 1).toString(),
+          statusAccount: 'ACTIVE',
+          city: 'Thành phố Hà Nội',
+          district: 'Quận Hai Bà Trưng',
+          gender: gender[Math.floor(Math.random() * 3)],
+          interest: ['Khoa học', 'Kỹ thuật', 'Thể thao'],
+          schoolYear: parseInt(record.studentId.slice(0, 4)),
+          liveIn: 'KTX A1',
+          phone: '0123456789',
+        },
+      });
+    });
+    await Promise.all(promises);
+    console.log('Seeded users');
+  } catch (error) {
+    console.log(error);
+  }
 }
+
 main().catch((e) => {
   console.error(e);
   process.exit(1);

@@ -87,13 +87,17 @@ export class AuthService {
       await this.setOnlineStatus(user.id);
       return new ResponseClass(
         token,
-        HttpStatusCode.ERROR,
+        HttpStatusCode.SUCCESS,
         "User's account has been created successfully",
       );
     } catch (error) {
       console.log(error);
       if (error.code === 'P2002') {
-        throw new ForbiddenException("User's email already exists");
+        return new ResponseClass(
+          null,
+          HttpStatusCode.ERROR,
+          'email đã tồn tại',
+        );
       }
     }
   }
@@ -117,19 +121,52 @@ export class AuthService {
             id: user.id,
           });
 
+          if (user.statusAccount === 'INACTIVE') {
+            console.log('inactive');
+            const randomToken = crypto.randomBytes(64).toString('hex');
+            const activeToken = await argon.hash(user.email + randomToken);
+            await this.prisma.activeCode.create({
+              data: {
+                userId: user.id,
+                code: activeToken,
+              },
+            });
+            await this.sendMailQueue.add('register', {
+              email: user.email,
+              name: user.name,
+              activeToken: activeToken,
+            });
+            return new ResponseClass(
+              null,
+              HttpStatusCode.ERROR,
+              'Tài khoản của bạn chưa được kích hoạt, vui lòng kiểm tra email để kích hoạt tài khoản',
+            );
+          }
           return new ResponseClass(
             token,
             HttpStatusCode.SUCCESS,
             'User logged in successfully',
           );
         } else {
-          throw new ForbiddenException("User's email or password is incorrect");
+          return new ResponseClass(
+            null,
+            HttpStatusCode.ERROR,
+            'Email hoặc mật khẩu không đúng',
+          );
         }
       } else {
-        throw new ForbiddenException("User's email or password is incorrect");
+        return new ResponseClass(
+          null,
+          HttpStatusCode.ERROR,
+          'Email hoặc mật khẩu không đúng',
+        );
       }
     } catch (error) {
-      throw new ForbiddenException("User's email or password is incorrect");
+      return new ResponseClass(
+        null,
+        HttpStatusCode.ERROR,
+        'Đăng nhập thất bại',
+      );
     }
   }
 
@@ -311,9 +348,10 @@ export class AuthService {
           statusAccount: 'ACTIVE',
         },
       });
-      await this.prisma.activeCode.delete({
+      //delete all code
+      await this.prisma.activeCode.deleteMany({
         where: {
-          id: activeCode.id,
+          userId: activeCode.userId,
         },
       });
       return new ResponseClass(

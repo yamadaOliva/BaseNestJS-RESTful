@@ -202,15 +202,17 @@ export class PostService {
         },
       });
       console.log(post, user);
-      await this.prisma.notification.create({
-        data: {
-          userId: post.userId,
-          sourceAvatarUrl: user.avatarUrl,
-          content: `${user.name} đã thích bài viết của bạn`,
-          type: 'like',
-          meta: post.id,
-        },
-      });
+      if (post.userId !== userId) {
+        await this.prisma.notification.create({
+          data: {
+            userId: post.userId,
+            sourceAvatarUrl: user.avatarUrl,
+            content: `${user.name} đã thích bài viết của bạn`,
+            type: 'like',
+            meta: post.id,
+          },
+        });
+      }
       return new ResponseClass({}, 200, 'Post liked successfully');
     } catch (error) {
       console.log(error);
@@ -258,13 +260,15 @@ export class PostService {
           commentId: commentId,
         },
       });
-      await this.prisma.notification.create({
-        data: {
-          userId: comment.userId,
-          content: `${user.name} đã thích bình luận của bạn`,
-          type: 'like',
-        },
-      });
+      if (comment.userId !== userId) {
+        await this.prisma.notification.create({
+          data: {
+            userId: comment.userId,
+            content: `${user.name} đã thích bình luận của bạn`,
+            type: 'like',
+          },
+        });
+      }
       return new ResponseClass({}, 200, 'Comment liked successfully');
     } catch (error) {
       console.log(error);
@@ -314,15 +318,18 @@ export class PostService {
           postId: postId,
         },
       });
-      await this.prisma.notification.create({
-        data: {
-          userId: post.userId,
-          sourceAvatarUrl: user.avatarUrl,
-          content: `${user.name} đã bình luận bài viết của bạn`,
-          type: 'comment',
-          meta: post.id,
-        },
-      });
+      if (post.userId !== userId) {
+        await this.prisma.notification.create({
+          data: {
+            userId: post.userId,
+            sourceAvatarUrl: user.avatarUrl,
+            content: `${user.name} đã bình luận bài viết của bạn`,
+            type: 'comment',
+            meta: post.id,
+          },
+        });
+      }
+
       return new ResponseClass(comment, 200, 'Comment created successfully');
     } catch (error) {
       console.log(error);
@@ -356,15 +363,19 @@ export class PostService {
           postId: comment.postId,
         },
       });
-      await this.prisma.notification.create({
-        data: {
-          userId: comment.userId,
-          sourceAvatarUrl: user.avatarUrl,
-          content: `${user.name} đã trả lời bình luận của bạn`,
-          type: 'reply',
-          meta: comment.postId,
-        },
-      });
+      // check not me
+      if (comment.userId !== userId) {
+        await this.prisma.notification.create({
+          data: {
+            userId: comment.userId,
+            sourceAvatarUrl: user.avatarUrl,
+            content: `${user.name} đã trả lời bình luận của bạn`,
+            type: 'reply',
+            meta: comment.postId,
+          },
+        });
+      }
+
       //commented user
 
       return new ResponseClass(reply, 200, 'Reply created successfully');

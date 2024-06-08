@@ -835,4 +835,56 @@ export class FriendService {
       console.error(error);
     }
   }
+
+  async getFriendById(idUser: string) {
+    try {
+      const friends = await this.prisma.friend.findMany({
+        where: {
+          OR: [
+            {
+              userId: idUser,
+            },
+            {
+              friendId: idUser,
+            },
+          ],
+          status: 'ACCEPTED',
+        },
+        select: {
+          userId: true,
+          friendId: true,
+        },
+      });
+      const friendIds = friends.map((friend) => {
+        if (friend.userId === idUser) {
+          return friend.friendId;
+        } else {
+          return friend.userId;
+        }
+      });
+      const friendList = await this.prisma.user.findMany({
+        where: {
+          id: {
+            in: friendIds,
+          },
+        },
+        select: {
+          id: true,
+          name: true,
+          avatarUrl: true,
+          district: true,
+          city: true,
+          class: true,
+          studentId: true,
+        },
+      });
+      return new ResponseClass(
+        friendList,
+        HttpStatusCode.SUCCESS,
+        'Get friend by id successfully',
+      );
+    } catch (error) {
+      console.error(error);
+    }
+  }
 }
