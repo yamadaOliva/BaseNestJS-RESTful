@@ -56,7 +56,6 @@ export class FriendService {
 
   async acceptFriend(idRequest: number) {
     try {
-      // update friend request status
       const { userId, friendId } = await this.prisma.friend.findUnique({
         where: {
           id: idRequest,
@@ -115,11 +114,24 @@ export class FriendService {
   async rejectFriend(idRequest: number) {
     // delete friend request
     try {
+      const { userId, friendId } = await this.prisma.friend.findUnique({
+        where: {
+          id: idRequest,
+        },
+        select: {
+          userId: true,
+          friendId: true,
+        },
+      });
       await this.prisma.friend.delete({
         where: {
           id: idRequest,
         },
       });
+      // remove from Redis
+      await this.loadFriendsToRedis(userId);
+      await this.loadFriendsToRedis(friendId);
+
       return new ResponseClass(
         null,
         HttpStatusCode.SUCCESS,
@@ -132,7 +144,6 @@ export class FriendService {
 
   async getFriendList(id: string, per_page: number, page: number) {
     try {
-      // Lấy tổng số bạn
       const totalFriends = await this.prisma.friend.count({
         where: {
           OR: [
@@ -147,7 +158,6 @@ export class FriendService {
         },
       });
 
-      // Lấy danh sách bạn bè với phân trang
       const friends1 = await this.prisma.friend.findMany({
         where: {
           friendId: id,
@@ -317,11 +327,16 @@ export class FriendService {
         },
       });
 
-      // Save to Redis
-      await this.redis.set(`pending_requests:${id}`, JSON.stringify(requests));
+      // mutual friends to Redis
+      const promises = requests.map(async (request) => {
+        const mutualFriends = await this.findMutualFriends(id, request.user.id);
+        return { ...request, mutualFriends };
+      });
+
+      let requestsWithMutualFriends = await Promise.all(promises);
 
       return new ResponseClass(
-        requests,
+        requestsWithMutualFriends,
         HttpStatusCode.SUCCESS,
         'Get list pending request successfully',
       );
@@ -542,9 +557,14 @@ export class FriendService {
 
       const friendIds = friends1.map((friend) => friend.userId);
       friendIds.push(...friends2.map((friend) => friend.friendId));
+      const friendInRedis = await this.redis.smembers(`friends:${id}:test`);
+      if (friendInRedis.length != 0) {
+        await this.redis.del(`friends:${id}:test`);
+      }
       const promises = friendIds.map(async (friendId) => {
-        this.redis.sadd(`friends:${id}:test`, friendId);
+        await this.redis.sadd(`friends:${id}:test`, friendId);
       });
+
       await Promise.all(promises);
     } catch (error) {
       console.error(error);
@@ -553,36 +573,14 @@ export class FriendService {
 
   async findMutualFriends(id1: string, id2: string) {
     try {
-      // get mutual friends
-      let mutualFriends = await this.redis.smembers(
+      await this.loadFriendsToRedis(id1);
+      await this.loadFriendsToRedis(id2);
+      const count = await this.redis.sinterstore(
         `mutualFriends:${id1}:${id2}`,
+        `friends:${id1}:test`,
+        `friends:${id2}:test`,
       );
-      if (mutualFriends) {
-        return mutualFriends.length;
-      } else {
-        const friends1 = await this.redis.smembers(`friends:${id1}:test`);
-        const friends2 = await this.redis.smembers(`friends:${id2}:test`);
-        if (friends1 && friends2) {
-          const count = await this.redis.sinterstore(
-            `mutualFriends:${id1}:${id2}`,
-            `friends:${id1}:test`,
-            `friends:${id2}:test`,
-          );
-          return count;
-        }
-        if (!friends1) {
-          this.loadFriendsToRedis(id1);
-        }
-        if (!friends2) {
-          this.loadFriendsToRedis(id2);
-        }
-        const count = await this.redis.sinterstore(
-          `mutualFriends:${id1}:${id2}`,
-          `friends:${id1}:test`,
-          `friends:${id2}:test`,
-        );
-        return count;
-      }
+      return count;
     } catch (error) {
       console.error(error);
     }

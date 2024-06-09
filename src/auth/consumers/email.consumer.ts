@@ -1,18 +1,7 @@
 import { Processor , Process } from "@nestjs/bull";
 import { Job } from "bull";
 import { MailerService } from '@nest-modules/mailer';
-/**
- * <p>Xin chào {{ name }}</p>
-<p>VUi lòng làm theo hướng dẫn</p>
-{{!-- link to active --}}
-{{#if active}}
-  <a href="{{ link }}">Kích hoạt tài khoản</a>
-{{/if}}
-{{!-- link to reset --}}
-{{#if reset}}
-  <a href="{{ link }}">Đặt lại mật khẩu</a>
-{{/if}}
- */
+
 @Processor('sendMail')
 export class EmailConsumer {
 	constructor(private readonly mailerService: MailerService) {}
@@ -35,6 +24,19 @@ export class EmailConsumer {
 	}
 	@Process('forgotPassword')
 	async sendMail2(job: Job<any>) {
-		console.log(job.data);
+		const { email, name, resetToken } = job.data;
+		const link = `http://192.168.1.14:3000/auth/reset/${resetToken}`;
+		await this.mailerService.sendMail({
+			to: email,
+			subject: 'Đặt lại mật khẩu',
+			template: 'welcome',
+			context: {
+				name,
+				link,
+				active: false,
+				reset: true,
+			},
+		});
+		
 	}
 }

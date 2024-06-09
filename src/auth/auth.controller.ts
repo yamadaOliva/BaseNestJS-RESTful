@@ -10,7 +10,7 @@ import {
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { AuthDTO } from './dto/auth.dto';
-import {  JwtGuard, RtGuard } from './guard';
+import { JwtGuard, RtGuard } from './guard';
 import { GetUser } from './decorator';
 @Controller('auth')
 export class AuthController {
@@ -46,13 +46,30 @@ export class AuthController {
     return this.authService.activeAccount(token);
   }
 
-  @Post('/forgotPassword')
+  @Post('/forgot-password')
   forgotPassword(@Body() body: any): Promise<any> {
     return this.authService.forgotPassword(body.email);
   }
 
-  @Post('/resetPassword')
+  @Post('/verify-forgot-password/')
+  verifyResetPassword(@Body('token') token: string): Promise<any> {
+    console.log(token);
+    return this.authService.verifyResetPasswordToken(token);
+  }
+
+  @Post('/reset-password')
   resetPassword(@Body() body: any): Promise<any> {
     return this.authService.resetPassword(body.token, body.password);
+  }
+
+  @UseGuards(JwtGuard)
+  @Post('/change-password')
+  changePassword(@GetUser() user: any, @Body() body: any): Promise<any> {
+    console.log(body);
+    return this.authService.changePassword(
+      user.user.id,
+      body.oldPassword,
+      body.newPassword,
+    );
   }
 }

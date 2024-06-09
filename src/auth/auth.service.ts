@@ -71,7 +71,9 @@ export class AuthService {
         },
       });
       const randomToken = crypto.randomBytes(64).toString('hex');
-      const activeToken = await argon.hash(user.email + randomToken);
+      let activeToken = await argon.hash(user.email + randomToken);
+      // delele "/"
+      activeToken = activeToken.replace(/\//g, '');
       await this.prisma.activeCode.create({
         data: {
           userId: user.id,
@@ -124,7 +126,9 @@ export class AuthService {
           if (user.statusAccount === 'INACTIVE') {
             console.log('inactive');
             const randomToken = crypto.randomBytes(64).toString('hex');
-            const activeToken = await argon.hash(user.email + randomToken);
+            let activeToken = await argon.hash(user.email + randomToken);
+            // delele "/"
+            activeToken = activeToken.replace(/\//g, '');
             await this.prisma.activeCode.create({
               data: {
                 userId: user.id,
@@ -371,11 +375,18 @@ export class AuthService {
       },
     });
     if (!user) {
-      return new ResponseClass(null, HttpStatusCode.ERROR, 'User not found');
+      return new ResponseClass(
+        null,
+        HttpStatusCode.ERROR,
+        'Email không tồn tại',
+      );
     }
     const randomToken = crypto.randomBytes(64).toString('hex');
-    const resetToken = await argon.hash(user.email + randomToken);
+    let resetToken = await argon.hash(user.email + randomToken);
+    // delele "/"
+    resetToken = resetToken.replace(/\//g, '');
     await this.redis.set(resetToken, user.id, 'EX', 6000);
+    console.log(resetToken);
     await this.sendMailQueue.add('forgotPassword', {
       email: user.email,
       name: user.name,
@@ -386,6 +397,18 @@ export class AuthService {
       HttpStatusCode.SUCCESS,
       'Please check your email to reset password',
     );
+  }
+
+  async verifyResetPasswordToken(token: string) {
+    const userId = await this.redis.get(token);
+    if (!userId) {
+      return new ResponseClass(
+        null,
+        HttpStatusCode.ERROR,
+        'The token is incorrect',
+      );
+    }
+    return new ResponseClass(null, HttpStatusCode.SUCCESS, 'Token is correct');
   }
 
   async resetPassword(token: string, password: string) {
@@ -412,5 +435,46 @@ export class AuthService {
       HttpStatusCode.SUCCESS,
       'Password has been reset successfully',
     );
+  }
+
+  async changePassword(id: string, oldPassword: string, newPassword: string) {
+    try {
+      const user = await this.prisma.user.findUnique({
+        where: {
+          id: id,
+        },
+      });
+      if (!user) {
+        return new ResponseClass(
+          null,
+          HttpStatusCode.ERROR,
+          'Không tìm thấy người dùng',
+        );
+      }
+      const isPasswordValid = await argon.verify(user.password, oldPassword);
+      if (!isPasswordValid) {
+        return new ResponseClass(
+          null,
+          HttpStatusCode.ERROR,
+          'Mật khẩu cũ không đúng',
+        );
+      }
+      const hashedPassword = await argon.hash(newPassword);
+      await this.prisma.user.update({
+        where: {
+          id: id,
+        },
+        data: {
+          password: hashedPassword,
+        },
+      });
+      return new ResponseClass(
+        null,
+        HttpStatusCode.SUCCESS,
+        'Password has been changed successfully',
+      );
+    } catch (error) {
+      console.log(error);
+    }
   }
 }

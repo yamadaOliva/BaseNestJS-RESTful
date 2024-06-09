@@ -266,6 +266,7 @@ export class PostService {
             userId: comment.userId,
             content: `${user.name} đã thích bình luận của bạn`,
             type: 'like',
+            meta: comment.postId,
           },
         });
       }
