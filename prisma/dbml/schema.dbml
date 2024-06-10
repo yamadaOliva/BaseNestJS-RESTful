@@ -171,6 +171,7 @@ Table group_members {
   updatedAt DateTime [not null]
   user users [not null]
   group groups [not null]
+  status String [not null, default: 'PENDING']
 }
 
 Table groups {
