@@ -217,4 +217,26 @@ export class GroupService {
       'Recommended groups fetched successfully',
     );
   }
+
+  async leaveGroup(userId, groupId) {
+    const group = await this.prisma.group.findUnique({
+      where: {
+        id: groupId,
+      },
+    });
+    if (!group) {
+      return new ResponseClass(null, HttpStatusCode.ERROR, 'Group not found');
+    }
+    await this.prisma.groupMember.deleteMany({
+      where: {
+        userId: userId,
+        groupId: groupId,
+      },
+    });
+    return new ResponseClass(
+      null,
+      HttpStatusCode.SUCCESS,
+      'Left group successfully',
+    );
+  }
 }

@@ -32,4 +32,10 @@ export class GroupController {
   async joinGroup(@GetUser() user, @Body('groupId') groupId: string) {
     return await this.groupService.requestToJoinGroup(user.user.id, groupId);
   }
+
+  @UseGuards(JwtGuard)
+  @Post('leave')
+  async leaveGroup(@GetUser() user, @Body('groupId') groupId: string) {
+    return await this.groupService.leaveGroup(user.user.id, groupId);
+  }
 }
