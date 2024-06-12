@@ -261,6 +261,7 @@ async function main() {
           majorId: majorId,
           class:
             programs[majorId - 1].acronym +
+            ' ' +
             Math.floor(Math.random() * 5 + 1).toString(),
           statusAccount: 'ACTIVE',
           city: 'Thành phố Hà Nội',

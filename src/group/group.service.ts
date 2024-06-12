@@ -114,20 +114,39 @@ export class GroupService {
   }
 
   async getGroups(userId) {
-    const groups = await this.prisma.groupMember.findMany({
+    const groupMembers = await this.prisma.groupMember.findMany({
       where: {
         userId: userId,
+        status: 'ACCEPTED',
       },
       include: {
         group: true,
       },
     });
+  
+    const groupsWithMemberCount = await Promise.all(
+      groupMembers.map(async (groupMember) => {
+        const memberCount = await this.prisma.groupMember.count({
+          where: {
+            groupId: groupMember.groupId,
+            status: 'ACCEPTED',
+          },
+        });
+  
+        return {
+          ...groupMember.group,
+          memberCount,
+        };
+      })
+    );
+  
     return new ResponseClass(
-      groups,
+      groupsWithMemberCount,
       HttpStatusCode.SUCCESS,
       'Groups fetched successfully',
     );
   }
+  
 
   async deleteMember(userId, groupId, memberId) {
     const group = await this.prisma.group.findUnique({
@@ -199,7 +218,6 @@ export class GroupService {
   }
 
   async recommendGroup(userId) {
-    // not in
     const groups = await this.prisma.group.findMany({
       where: {
         NOT: {
@@ -210,14 +228,26 @@ export class GroupService {
           },
         },
       },
+      include: {
+        _count: {
+          select: {
+            members: true,
+          },
+        },
+      },
     });
+
+    const groupWithMemberCount = groups.map((group) => ({
+      ...group,
+      memberCount: group._count.members,
+    }));
+
     return new ResponseClass(
-      groups,
+      groupWithMemberCount,
       HttpStatusCode.SUCCESS,
       'Recommended groups fetched successfully',
     );
   }
-
   async leaveGroup(userId, groupId) {
     const group = await this.prisma.group.findUnique({
       where: {
