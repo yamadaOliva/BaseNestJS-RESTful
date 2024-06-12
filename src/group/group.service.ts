@@ -70,9 +70,27 @@ export class GroupService {
       data: {
         status: 'ACCEPTED',
       },
+      include: {
+        user: true,
+      },
+    });
+
+    const group = await this.prisma.group.findUnique({
+      where: {
+        id: request.groupId,
+      },
+    });
+    const notification = await this.prisma.notification.create({
+      data: {
+        userId: request.userId,
+        sourceAvatarUrl: request.user.avatarUrl,
+        content: 'Bạn đã được chấp nhận vào nhóm ' + group.name,
+        type: 'GROUP',
+        meta: group.id,
+      },
     });
     return new ResponseClass(
-      request,
+      notification,
       HttpStatusCode.SUCCESS,
       'Request accepted successfully',
     );
@@ -123,7 +141,7 @@ export class GroupService {
         group: true,
       },
     });
-  
+
     const groupsWithMemberCount = await Promise.all(
       groupMembers.map(async (groupMember) => {
         const memberCount = await this.prisma.groupMember.count({
@@ -132,21 +150,20 @@ export class GroupService {
             status: 'ACCEPTED',
           },
         });
-  
+
         return {
           ...groupMember.group,
           memberCount,
         };
-      })
+      }),
     );
-  
+
     return new ResponseClass(
       groupsWithMemberCount,
       HttpStatusCode.SUCCESS,
       'Groups fetched successfully',
     );
   }
-  
 
   async deleteMember(userId, groupId, memberId) {
     const group = await this.prisma.group.findUnique({
@@ -267,6 +284,55 @@ export class GroupService {
       null,
       HttpStatusCode.SUCCESS,
       'Left group successfully',
+    );
+  }
+
+  async findGroupById(groupId) {
+    //count members and data
+    const group = await this.prisma.group.findUnique({
+      where: {
+        id: groupId,
+      },
+      include: {
+        members: {
+          where: {
+            status: 'ACCEPTED',
+          },
+          include: {
+            user: {
+              select: {
+                id: true,
+                name: true,
+                avatarUrl: true,
+                studentId: true,
+                class: true,
+              },
+            },
+          },
+        },
+      },
+    });
+    return new ResponseClass(
+      group,
+      HttpStatusCode.SUCCESS,
+      'Group fetched successfully',
+    );
+  }
+
+  async getRequestList(groupId) {
+    const requests = await this.prisma.groupMember.findMany({
+      where: {
+        groupId: groupId,
+        status: 'PENDING',
+      },
+      include: {
+        user: true,
+      },
+    });
+    return new ResponseClass(
+      requests,
+      HttpStatusCode.SUCCESS,
+      'Requests fetched successfully',
     );
   }
 }

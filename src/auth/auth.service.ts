@@ -190,10 +190,8 @@ export class AuthService {
 
   async loginWith365Office(data: any) {
     const email = data.email.toLowerCase();
-    //delete last word of name
     const studentId = data.name.split(' ').slice(-1).join(' ');
     const name = data.name.split(' ').slice(0, -1).join(' ');
-    //find email in database if not exist create new user password 123456
     const user = await this.prisma.user.findUnique({
       where: {
         email: email,
@@ -244,7 +242,6 @@ export class AuthService {
       }
     } else {
       if (user.statusAccount === 'INACTIVE') {
-        //update status account
         await this.prisma.user.update({
           where: {
             email: email,

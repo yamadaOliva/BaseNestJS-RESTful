@@ -1,4 +1,4 @@
-import { Controller, Post, Body, Get } from '@nestjs/common';
+import { Controller, Post, Body, Get, Param } from '@nestjs/common';
 import { GroupService } from './group.service';
 import { UseGuards } from '@nestjs/common';
 import { JwtGuard } from 'src/auth/guard';
@@ -37,5 +37,35 @@ export class GroupController {
   @Post('leave')
   async leaveGroup(@GetUser() user, @Body('groupId') groupId: string) {
     return await this.groupService.leaveGroup(user.user.id, groupId);
+  }
+
+  @UseGuards(JwtGuard)
+  @Get('/:id')
+  async getGroupDetail(@GetUser() user, @Param('id') id: string) {
+    return await this.groupService.findGroupById(id);
+  }
+
+  @UseGuards(JwtGuard)
+  @Get(':id/requests')
+  async getRequestList(@GetUser() user, @Param('id') id: string) {
+    return await this.groupService.getRequestList(id);
+  }
+
+  @UseGuards(JwtGuard)
+  @Post('accept')
+  async acceptRequest(@GetUser() user, @Body('requestId') requestId: string) {
+    return await this.groupService.acceptRequest(requestId);
+  }
+
+  @UseGuards(JwtGuard)
+  @Post('reject')
+  async rejectRequest(@GetUser() user, @Body('requestId') requestId: string) {
+    return await this.groupService.rejectRequest(requestId);
+  }
+
+  @UseGuards(JwtGuard)
+  @Post('deleteUser') 
+  async deleteGroup(@GetUser() user, @Body('groupId') groupId: string, @Body('userId') userId: string) {
+    return await this.groupService.deleteMember(user.user.id, groupId, userId);
   }
 }
