@@ -139,7 +139,10 @@ export class FriendController {
   @UseGuards(JwtGuard)
   @Get('check/:idTarget')
   async checkFriend(@GetUser() user, @Param('idTarget') idTarget: string) {
-    return await this.friendService.checkFollowAndFriend(user.user.id, idTarget);
+    return await this.friendService.checkFollowAndFriend(
+      user.user.id,
+      idTarget,
+    );
   }
 
   @UseGuards(JwtGuard)
@@ -151,5 +154,11 @@ export class FriendController {
   @Get('/list/:id')
   async getFriendListFromId(@Param('id') id: string) {
     return await this.friendService.getFriendById(id);
+  }
+
+  @UseGuards(JwtGuard)
+  @Get('/group/:id/online')
+  async getFriendListOnline(@GetUser() user, @Param('id') id: string) {
+    return await this.friendService.getGroupMemberOnline(user.user.id, id);
   }
 }

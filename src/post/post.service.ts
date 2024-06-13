@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { ResponseClass } from 'src/global';
-import { postDTO } from './postDTO';
+import { postDTO, groupPostDTO } from './postDTO';
 @Injectable()
 export class PostService {
   constructor(private prisma: PrismaService) {}
@@ -92,6 +92,7 @@ export class PostService {
               },
             },
           },
+          group: true,
         },
       });
       return new ResponseClass(post, 200, 'Post fetched successfully');
@@ -117,11 +118,12 @@ export class PostService {
     });
   }
 
-  async getPostByUserId(userId: string) {
+  async getPostByUserId(userId: string, page: number, per_page: number) {
     try {
       const posts = await this.prisma.post.findMany({
         where: {
           userId: userId,
+          type: 'PERSONAL',
         },
         include: {
           user: {
@@ -170,10 +172,13 @@ export class PostService {
               },
             },
           },
+
         },
         orderBy: {
           createdAt: 'desc',
         },
+        take: per_page,
+        skip: (page - 1) * per_page,
       });
       return new ResponseClass(posts, 200, 'Post fetched successfully');
     } catch (error) {
@@ -384,4 +389,192 @@ export class PostService {
       console.log(error);
     }
   }
+
+  async createGroupPost(data: groupPostDTO) {
+    try {
+      await this.prisma.post.create({
+        data: {
+          ...data,
+          type: 'GROUP',
+        },
+      });
+      return new ResponseClass({}, 200, 'Post created successfully');
+    } catch (error) {
+      console.log(error);
+    }
+  }
+
+  async getPostByGroupId(groupId: string) {
+    try {
+      const posts = await this.prisma.post.findMany({
+        where: {
+          groupId: groupId,
+        },
+        include: {
+          user: {
+            select: {
+              id: true,
+              name: true,
+              avatarUrl: true,
+            },
+          },
+          comments: {
+            include: {
+              user: {
+                select: {
+                  id: true,
+                  name: true,
+                  avatarUrl: true,
+                },
+              },
+              likes: {
+                include: {
+                  user: {
+                    select: {
+                      id: true,
+                      name: true,
+                      avatarUrl: true,
+                    },
+                  },
+                },
+              },
+            },
+            orderBy: {
+              createdAt: 'desc',
+            },
+          },
+          likes: {
+            where: {
+              commentId: null,
+            },
+            include: {
+              user: {
+                select: {
+                  id: true,
+                  name: true,
+                  avatarUrl: true,
+                },
+              },
+            },
+          },
+        },
+        orderBy: {
+          createdAt: 'desc',
+        },
+      });
+      return new ResponseClass(posts, 200, 'Post fetched successfully');
+    } catch (error) {
+      console.log(error);
+    }
+  }
+  async getLatestPostsByUserId(userId: string, page: number, per_page: number) {
+    try {
+      const follows = await this.prisma.follow.findMany({
+        where: {
+          userId: userId,
+        },
+        select: {
+          followId: true,
+        },
+      });
+  
+      const followingIds = follows.map((follow) => follow.followId);
+  
+      const groupMemberships = await this.prisma.groupMember.findMany({
+        where: {
+          userId: userId,
+          status: "ACCEPTED", 
+        },
+        select: {
+          groupId: true,
+        },
+      });
+  
+      const groupIds = groupMemberships.map((membership) => membership.groupId);
+  
+      const posts = await this.prisma.post.findMany({
+        where: {
+          OR: [
+            {
+              userId: {
+                in: followingIds,
+              },
+              type: 'PERSONAL',
+            },
+            {
+              groupId: {
+                in: groupIds,
+              },
+              type: 'GROUP',
+            },
+          ],
+        },
+        include: {
+          user: {
+            select: {
+              id: true,
+              name: true,
+              avatarUrl: true,
+            },
+          },
+          comments: {
+            include: {
+              user: {
+                select: {
+                  id: true,
+                  name: true,
+                  avatarUrl: true,
+                },
+              },
+              likes: {
+                include: {
+                  user: {
+                    select: {
+                      id: true,
+                      name: true,
+                      avatarUrl: true,
+                    },
+                  },
+                },
+              },
+            },
+            orderBy: {
+              createdAt: 'desc',
+            },
+          },
+          likes: {
+            where: {
+              commentId: null,
+            },
+            include: {
+              user: {
+                select: {
+                  id: true,
+                  name: true,
+                  avatarUrl: true,
+                },
+              },
+            },
+          },
+          group: {
+            select: {
+              id: true,
+              name: true,
+            },
+          },
+        },
+        orderBy: {
+          createdAt: 'desc',
+        },
+        take: per_page,
+        skip: (page - 1) * per_page,
+      });
+  
+      return new ResponseClass(posts, 200, 'Posts fetched successfully');
+    } catch (error) {
+      console.error(error);
+      throw new Error('Failed to fetch posts');
+    }
+  }
+  
 }

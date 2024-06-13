@@ -183,6 +183,7 @@ Table groups {
   updatedAt DateTime [not null]
   members group_members [not null]
   posts posts [not null]
+  status String [not null, default: 'PRIVATE']
 }
 
 Table reports {

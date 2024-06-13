@@ -55,7 +55,7 @@ export class SocketGateway
   @SubscribeMessage('comment')
   async handleComment(client: Socket, room: any) {
     console.log('comment', room);
-    this.server.to(room).emit('comment', "refresh");
+    this.server.to(room).emit('comment', 'refresh');
   }
 
   @SubscribeMessage('notification')
@@ -71,5 +71,17 @@ export class SocketGateway
   ) {
     const roomName = 'user_' + payload.friendId;
     this.server.to(roomName).emit('notificationFriend', payload);
+  }
+
+  @SubscribeMessage('join-group')
+  async handleJoinGroup(client: Socket, room: string) {
+    client.join(room);
+    console.log('join-groupppppppppppppppppppppppppppppppp', room);
+  }
+
+  @SubscribeMessage('refreshGroup')
+  async handleRefreshGroup(client: Socket, room: string) {
+    console.log('refreshGroup', room);
+    this.server.to(room).emit('refreshGroup', 'refresh');
   }
 }

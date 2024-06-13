@@ -885,4 +885,49 @@ export class FriendService {
       console.error(error);
     }
   }
+
+  async getGroupMemberOnline(meId: string, groupId: string) {
+    try {
+      const groupMembers = await this.prisma.groupMember.findMany({
+        where: {
+          groupId: groupId,
+        },
+        select: {
+          userId: true,
+        },
+      });
+      const groupMemberIds = groupMembers.map((member) => member.userId);
+      const onlineMembers = await this.redis.keys('online:*');
+      const onlineMemberIds = onlineMembers.map((member) =>
+        member.replace('online:', ''),
+      );
+      const onlineMemberIds2 = onlineMemberIds.filter((member) =>
+        groupMemberIds.includes(member),
+      );
+      const onlineMemberInfo = await this.prisma.user.findMany({
+        where: {
+          id: {
+            in: onlineMemberIds2,
+            not: meId,
+          },
+        },
+        select: {
+          id: true,
+          name: true,
+          avatarUrl: true,
+          district: true,
+          city: true,
+          class: true,
+          studentId: true,
+        },
+      });
+      return new ResponseClass(
+        onlineMemberInfo,
+        HttpStatusCode.SUCCESS,
+        'Get group member online successfully',
+      );
+    } catch (error) {
+      console.error(error);
+    }
+  }
 }

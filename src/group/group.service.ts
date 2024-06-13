@@ -55,6 +55,17 @@ export class GroupService {
         status: 'PENDING',
       },
     });
+
+    // notification
+    const notification = await this.prisma.notification.create({
+      data: {
+        userId: group.OwnerId,
+        sourceAvatarUrl: 'https://i.imgur.com/8H9M7Zt.png',
+        content: 'Bạn có một yêu cầu tham gia nhóm ' + group.name,
+        type: 'GROUP',
+        meta: group.id,
+      },
+    });
     return new ResponseClass(
       request,
       HttpStatusCode.SUCCESS,
@@ -203,7 +214,7 @@ export class GroupService {
   }
 
   async findGroupByName(name) {
-    const group = await this.prisma.group.findFirst({
+    const group = await this.prisma.group.findMany({
       where: {
         name: {
           contains: name,
@@ -293,7 +304,9 @@ export class GroupService {
       where: {
         id: groupId,
       },
+
       include: {
+        owner: true,
         members: {
           where: {
             status: 'ACCEPTED',
@@ -333,6 +346,39 @@ export class GroupService {
       requests,
       HttpStatusCode.SUCCESS,
       'Requests fetched successfully',
+    );
+  }
+
+  async changeStatus(userId, groupId) {
+    // status PRIVATE or PUBLIC
+    const group = await this.prisma.group.findUnique({
+      where: {
+        id: groupId,
+      },
+    });
+    if (!group) {
+      return new ResponseClass(null, HttpStatusCode.ERROR, 'Group not found');
+    }
+    if (group.OwnerId !== userId) {
+      return new ResponseClass(
+        null,
+        HttpStatusCode.ERROR,
+        'You are not the owner of this group',
+      );
+    }
+    const status = group.status === 'PRIVATE' ? 'PUBLIC' : 'PRIVATE';
+    await this.prisma.group.update({
+      where: {
+        id: groupId,
+      },
+      data: {
+        status: status,
+      },
+    });
+    return new ResponseClass(
+      null,
+      HttpStatusCode.SUCCESS,
+      'Status changed successfully',
     );
   }
 }

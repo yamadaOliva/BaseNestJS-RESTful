@@ -6,6 +6,7 @@ import {
   Param,
   Post,
   UseGuards,
+  ParseIntPipe
 } from '@nestjs/common';
 import { PostService } from './post.service';
 import { JwtGuard } from 'src/auth/guard';
@@ -22,10 +23,14 @@ export class PostController {
     });
   }
 
-  @Get('/get/user/:id')
-  async getPosts(@Param('id') id: string) {
+  @Get('/get/user/:id/:page/:limit')
+  async getPosts(
+    @Param('id') id: string,
+    @Param('page', ParseIntPipe) page: number,
+    @Param('limit', ParseIntPipe) limit: number,
+  ) {
     console.log(id);
-    return await this.postService.getPostByUserId(id);
+    return await this.postService.getPostByUserId(id, page, limit);
   }
 
   @UseGuards(JwtGuard)
@@ -76,6 +81,35 @@ export class PostController {
       user.user.id,
       data.commentId,
       data.content,
+    );
+  }
+
+  @UseGuards(JwtGuard)
+  @Post('/group')
+  async createGroupPost(@GetUser() user, @Body() data) {
+    return await this.postService.createGroupPost({
+      ...data,
+      userId: user.user.id,
+    });
+  }
+
+  @UseGuards(JwtGuard)
+  @Get('/group/:id')
+  async getGroupPosts(@Param('id') id: string) {
+    return await this.postService.getPostByGroupId(id);
+  }
+
+  @UseGuards(JwtGuard)
+  @Get('following/:page/:limit')
+  async getFollowingPosts(
+    @GetUser() user,
+    @Param('page', ParseIntPipe) page: number,
+    @Param('limit', ParseIntPipe) limit: number,
+  ) {
+    return await this.postService.getLatestPostsByUserId(
+      user.user.id,
+      page,
+      limit,
     );
   }
 }

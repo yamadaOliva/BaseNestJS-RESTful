@@ -219,6 +219,7 @@ model Group {
   updatedAt DateTime      @updatedAt
   members   GroupMember[]
   posts     Post[]
+  status    String        @default("PRIVATE")
 
   @@map("groups")
 }
