@@ -6,7 +6,7 @@ import {
   Param,
   Post,
   UseGuards,
-  ParseIntPipe
+  ParseIntPipe,
 } from '@nestjs/common';
 import { PostService } from './post.service';
 import { JwtGuard } from 'src/auth/guard';
@@ -111,5 +111,17 @@ export class PostController {
       page,
       limit,
     );
+  }
+
+  @UseGuards(JwtGuard)
+  @Delete('/delete/:id')
+  async deletePost(@Param('id') id: string) {
+    return await this.postService.deletePost(id);
+  }
+
+  @UseGuards(JwtGuard)
+  @Delete('/comment/delete/:id')
+  async deleteComment(@Param('id') id: string) {
+    return await this.postService.deleteComment(id);
   }
 }

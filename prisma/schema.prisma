@@ -134,7 +134,7 @@ model Comment {
   user      User     @relation(fields: [userId], references: [id])
   userId    String
   postId    String
-  post      Post     @relation(fields: [postId], references: [id])
+  post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
   likes     Like[]
   reports   Report[]
   GroupId   String?  @default("")
@@ -149,9 +149,9 @@ model Like {
   user      User     @relation(fields: [userId], references: [id])
   userId    String
   postId    String
-  post      Post     @relation(fields: [postId], references: [id])
+  post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
   commentId String?  @default("")
-  comment   Comment? @relation(fields: [commentId], references: [id])
+  comment   Comment? @relation(fields: [commentId], references: [id], onDelete: Cascade)
 
   @@map("likes")
 }
@@ -219,7 +219,6 @@ model Group {
   updatedAt DateTime      @updatedAt
   members   GroupMember[]
   posts     Post[]
-  status    String        @default("PRIVATE")
 
   @@map("groups")
 }
@@ -238,6 +237,7 @@ model Report {
   post         Post?    @relation(fields: [postId], references: [id])
   commentId    String?  @default("")
   comment      Comment? @relation(fields: [commentId], references: [id])
+  reason       String
 
   @@map("reports")
 }

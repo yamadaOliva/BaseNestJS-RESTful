@@ -110,6 +110,12 @@ export class AuthService {
           email: authDTO.email,
         },
       });
+      if (user.statusAccount == 'BLOCKED')
+        return new ResponseClass(
+          null,
+          HttpStatusCode.ERROR,
+          'Tài khoản của bạn đã bị khóa',
+        );
       if (user) {
         const isPasswordValid = await argon.verify(
           user.password,
@@ -127,7 +133,6 @@ export class AuthService {
             console.log('inactive');
             const randomToken = crypto.randomBytes(64).toString('hex');
             let activeToken = await argon.hash(user.email + randomToken);
-            // delele "/"
             activeToken = activeToken.replace(/\//g, '');
             await this.prisma.activeCode.create({
               data: {
@@ -198,7 +203,13 @@ export class AuthService {
       },
     });
     if (!user) {
-      const hashedPassword = await argon.hash('123456');
+      const randomPassword = crypto.randomBytes(64).toString('hex');
+      const hashedPassword = await argon.hash(randomPassword);
+      await this.sendMailQueue.add('sendPassword', {
+        email: email,
+        name: name,
+        password: randomPassword,
+      });
       try {
         const user = await this.prisma.user.create({
           data: {
@@ -241,6 +252,13 @@ export class AuthService {
         }
       }
     } else {
+      if (user.statusAccount === 'BLOCKED') {
+        return new ResponseClass(
+          null,
+          HttpStatusCode.ERROR,
+          'Tài khoản của bạn đã bị khóa',
+        );
+      }
       if (user.statusAccount === 'INACTIVE') {
         await this.prisma.user.update({
           where: {
@@ -380,7 +398,6 @@ export class AuthService {
     }
     const randomToken = crypto.randomBytes(64).toString('hex');
     let resetToken = await argon.hash(user.email + randomToken);
-    // delele "/"
     resetToken = resetToken.replace(/\//g, '');
     await this.redis.set(resetToken, user.id, 'EX', 6000);
     console.log(resetToken);

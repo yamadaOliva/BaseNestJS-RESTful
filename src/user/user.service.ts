@@ -9,9 +9,8 @@ export class UserService {
   async findOne(email: string): Promise<any> {
     console.log(email);
     try {
-      
     } catch (error) {
-        throw new NotFoundException('User not found');
+      throw new NotFoundException('User not found');
     }
     const user = await this.prisma.user.findUnique({
       where: {
@@ -21,6 +20,7 @@ export class UserService {
         id: true,
         avatarUrl: true,
         name: true,
+        role: true,
       },
     });
     if (user.name === null) {
@@ -47,9 +47,8 @@ export class UserService {
         'Get user profile successfully',
       );
     } catch (error) {
-        throw new NotFoundException('User not found');
+      throw new NotFoundException('User not found');
     }
-    
   }
 
   getProfileById = async (id: string): Promise<any> => {
@@ -66,11 +65,11 @@ export class UserService {
         'Get user profile successfully',
       );
     } catch (error) {
-        throw new NotFoundException('User not found');
+      throw new NotFoundException('User not found');
     }
-  }
+  };
 
-  async updateProfile(email: string, data:any): Promise<any> {
+  async updateProfile(email: string, data: any): Promise<any> {
     console.log(data);
     try {
       const user = await this.prisma.user.update({
@@ -83,11 +82,11 @@ export class UserService {
           phone: data.phone,
           city: data.city,
           district: data.district,
-          interest : data.interest,
-          class : data.class,
-          majorId : data.majorId,
-          gender : data.gender,
-          Birthday : data.birthday,
+          interest: data.interest,
+          class: data.class,
+          majorId: data.majorId,
+          gender: data.gender,
+          Birthday: data.birthday,
         },
       });
       return new ResponseClass(
@@ -96,10 +95,90 @@ export class UserService {
         'Update user profile successfully',
       );
     } catch (error) {
-        throw new NotFoundException('User not found');
+      throw new NotFoundException('User not found');
     }
   }
- 
-  
 
+  async getListUser(
+    userId: string,
+    page: number,
+    per_page: number,
+  ): Promise<any> {
+    const checkAdmin = await this.prisma.user.findUnique({
+      where: {
+        id: userId,
+      },
+    });
+    if (checkAdmin.role !== 'ADMIN') {
+      throw new NotFoundException('Đã xảy ra lỗi');
+    }
+    const users = await this.prisma.user.findMany({
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        avatarUrl: true,
+      },
+      take: per_page,
+      skip: (page - 1) * per_page,
+      where: {
+        NOT: {
+          id: userId,
+        },
+      },
+    });
+    return new ResponseClass(
+      users,
+      HttpStatusCode.SUCCESS,
+      'Get list user successfully',
+    );
+  }
+
+  async banUser(userId: string, bannedId: string): Promise<any> {
+    const checkAdmin = await this.prisma.user.findUnique({
+      where: {
+        id: userId,
+      },
+    });
+    if (checkAdmin.role !== 'ADMIN') {
+      throw new NotFoundException('Đã xảy ra lỗi');
+    }
+    const user = await this.prisma.user.update({
+      where: {
+        id: bannedId,
+      },
+      data: {
+        statusAccount: 'BLOCKED',
+      },
+    });
+    return new ResponseClass(
+      user,
+      HttpStatusCode.SUCCESS,
+      'Ban user successfully',
+    );
+  }
+
+  async unbanUser(userId: string, bannedId: string): Promise<any> {
+    const checkAdmin = await this.prisma.user.findUnique({
+      where: {
+        id: userId,
+      },
+    });
+    if (checkAdmin.role !== 'ADMIN') {
+      throw new NotFoundException('Đã xảy ra lỗi');
+    }
+    const user = await this.prisma.user.update({
+      where: {
+        id: bannedId,
+      },
+      data: {
+        statusAccount: 'ACTIVE',
+      },
+    });
+    return new ResponseClass(
+      user,
+      HttpStatusCode.SUCCESS,
+      'Unban user successfully',
+    );
+  }
 }

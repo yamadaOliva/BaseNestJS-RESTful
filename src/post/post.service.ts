@@ -111,11 +111,14 @@ export class PostService {
   }
 
   async deletePost(id: string) {
-    return await this.prisma.post.delete({
-      where: {
-        id: id,
-      },
-    });
+    try {
+      await this.prisma.post.delete({
+        where: {
+          id: id,
+        },
+      });
+      return new ResponseClass({}, 200, 'Post deleted successfully');
+    } catch (error) {}
   }
 
   async getPostByUserId(userId: string, page: number, per_page: number) {
@@ -172,7 +175,6 @@ export class PostService {
               },
             },
           },
-
         },
         orderBy: {
           createdAt: 'desc',
@@ -311,7 +313,32 @@ export class PostService {
           id: postId,
         },
       });
-      console.log(post);
+
+      const checkFriend = await this.prisma.friend.findFirst({
+        where: {
+          OR: [
+            {
+              userId: userId,
+              friendId: post.userId,
+              status: 'ACCEPTED',
+            },
+            {
+              userId: post.userId,
+              friendId: userId,
+              status: 'ACCEPTED',
+            },
+          ],
+        },
+      });
+
+      if (!checkFriend && post.type === 'PERSONAL') {
+        return new ResponseClass(
+          {},
+          400,
+          'Phải là bạn bè mới có thể bình luận',
+        );
+      }
+
       const user = await this.prisma.user.findUnique({
         where: {
           id: userId,
@@ -352,10 +379,36 @@ export class PostService {
           post: {
             select: {
               id: true,
+              userId: true,
+              type: true,
             },
           },
         },
       });
+      const checkFriend = await this.prisma.friend.findFirst({
+        where: {
+          OR: [
+            {
+              userId: userId,
+              friendId: comment.post.userId,
+              status: 'ACCEPTED',
+            },
+            {
+              userId: comment.post.userId,
+              friendId: userId,
+              status: 'ACCEPTED',
+            },
+          ],
+        },
+      });
+      if (!checkFriend && comment.post.type === 'PERSONAL') {
+        return new ResponseClass(
+          {},
+          400,
+          'Phải là bạn bè mới có thể trả lời bình luận',
+        );
+      }
+
       const user = await this.prisma.user.findUnique({
         where: {
           id: userId,
@@ -457,6 +510,13 @@ export class PostService {
               },
             },
           },
+          group: {
+            select: {
+              id: true,
+              name: true,
+              OwnerId: true,
+            },
+          },
         },
         orderBy: {
           createdAt: 'desc',
@@ -477,21 +537,21 @@ export class PostService {
           followId: true,
         },
       });
-  
+
       const followingIds = follows.map((follow) => follow.followId);
-  
+
       const groupMemberships = await this.prisma.groupMember.findMany({
         where: {
           userId: userId,
-          status: "ACCEPTED", 
+          status: 'ACCEPTED',
         },
         select: {
           groupId: true,
         },
       });
-  
+
       const groupIds = groupMemberships.map((membership) => membership.groupId);
-  
+
       const posts = await this.prisma.post.findMany({
         where: {
           OR: [
@@ -560,6 +620,7 @@ export class PostService {
             select: {
               id: true,
               name: true,
+              OwnerId: true,
             },
           },
         },
@@ -569,12 +630,32 @@ export class PostService {
         take: per_page,
         skip: (page - 1) * per_page,
       });
-  
+
       return new ResponseClass(posts, 200, 'Posts fetched successfully');
     } catch (error) {
       console.error(error);
       throw new Error('Failed to fetch posts');
     }
   }
-  
+
+  async deleteComment(commentId: string) {
+    try {
+      await this.prisma.comment.deleteMany({
+        where: {
+          OR: [
+            {
+              id: commentId,
+            },
+            {
+              fatherId: commentId,
+            },
+          ],
+        },
+      });
+      return new ResponseClass({}, 200, 'Comment deleted successfully');
+    } catch (error) {
+      console.error(error);
+      throw new Error('Failed to delete comment');
+    }
+  }
 }

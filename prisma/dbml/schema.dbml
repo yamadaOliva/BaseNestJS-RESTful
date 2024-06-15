@@ -183,7 +183,6 @@ Table groups {
   updatedAt DateTime [not null]
   members group_members [not null]
   posts posts [not null]
-  status String [not null, default: 'PRIVATE']
 }
 
 Table reports {
@@ -200,6 +199,7 @@ Table reports {
   post posts
   commentId String [default: '']
   comment comments
+  reason String [not null]
 }
 
 Table src {
@@ -228,13 +228,13 @@ Ref: posts.groupId > groups.id
 
 Ref: comments.userId > users.id
 
-Ref: comments.postId > posts.id
+Ref: comments.postId > posts.id [delete: Cascade]
 
 Ref: likes.userId > users.id
 
-Ref: likes.postId > posts.id
+Ref: likes.postId > posts.id [delete: Cascade]
 
-Ref: likes.commentId > comments.id
+Ref: likes.commentId > comments.id [delete: Cascade]
 
 Ref: friends.userId > users.id
 

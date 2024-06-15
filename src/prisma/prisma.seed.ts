@@ -1,6 +1,6 @@
 import { PrismaService } from './prisma.service';
 const prisma = new PrismaService();
-
+import * as argon from 'argon2';
 interface StudentRecord {
   name: string;
   studentId: string;
@@ -208,6 +208,7 @@ async function main() {
     },
     { name: 'Quản trị kinh doanh - ĐH Troy (Hoa Kỳ)', acronym: 'TROY-BA' },
     { name: 'Khoa học máy tính - ĐH Troy (Hoa Kỳ)', acronym: 'TROY-IT' },
+    { name: 'ADMIN', acronym: 'ADMIN' },
   ];
   const programsSortedByName = programs.slice().sort((a, b) => {
     const nameA = a.name.toUpperCase();
@@ -245,6 +246,26 @@ async function main() {
   const studentRecords = generateStudentRecords(100);
   const gender = ['Nam', 'Nữ', 'Khác'];
   try {
+    //admin
+    const password = 'admin123456';
+    await prisma.user.create({
+      data: {
+        email: 'adminBK@sis.hust.edu.vn',
+        name: 'Đại học Bách Khoa Hà Nội',
+        studentId: 'admin',
+        password: await argon.hash(password),
+        role: 'ADMIN',
+        Birthday: new Date(),
+        avatarUrl:
+          'https://res.cloudinary.com/subarasuy/image/upload/v1716135390/prvieraqcydb8ehxjf8x.png',
+        majorId: 100,
+        class: 'ADMIN',
+        statusAccount: 'ACTIVE',
+        city: 'Thành phố Hà Nội',
+        district: 'Quận Hai Bà Trưng',
+      },
+    });
+
     const promises = studentRecords.map((record) => {
       const majorId = Math.floor(Math.random() * programs.length) + 1;
       return prisma.user.create({

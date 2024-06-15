@@ -348,37 +348,4 @@ export class GroupService {
       'Requests fetched successfully',
     );
   }
-
-  async changeStatus(userId, groupId) {
-    // status PRIVATE or PUBLIC
-    const group = await this.prisma.group.findUnique({
-      where: {
-        id: groupId,
-      },
-    });
-    if (!group) {
-      return new ResponseClass(null, HttpStatusCode.ERROR, 'Group not found');
-    }
-    if (group.OwnerId !== userId) {
-      return new ResponseClass(
-        null,
-        HttpStatusCode.ERROR,
-        'You are not the owner of this group',
-      );
-    }
-    const status = group.status === 'PRIVATE' ? 'PUBLIC' : 'PRIVATE';
-    await this.prisma.group.update({
-      where: {
-        id: groupId,
-      },
-      data: {
-        status: status,
-      },
-    });
-    return new ResponseClass(
-      null,
-      HttpStatusCode.SUCCESS,
-      'Status changed successfully',
-    );
-  }
 }

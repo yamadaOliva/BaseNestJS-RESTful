@@ -15,6 +15,7 @@ import { NotificationModule } from './notification/notification.module';
 import { HandlebarsAdapter, MailerModule } from '@nest-modules/mailer';
 import { join } from 'path';
 import { BullModule } from '@nestjs/bull';
+import { ReportModule } from './report/report.module';
 
 @Module({
   imports: [
@@ -62,6 +63,7 @@ import { BullModule } from '@nestjs/bull';
         port: 6379,
       },
     }),
+    ReportModule,
     
   ],
 })
