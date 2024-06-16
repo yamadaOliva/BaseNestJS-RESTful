@@ -104,6 +104,13 @@ export class UserService {
     page: number,
     per_page: number,
   ): Promise<any> {
+    const count = await this.prisma.user.count({
+      where: {
+        NOT: {
+          id: userId,
+        },
+      },
+    });
     const checkAdmin = await this.prisma.user.findUnique({
       where: {
         id: userId,
@@ -118,6 +125,9 @@ export class UserService {
         name: true,
         email: true,
         avatarUrl: true,
+        class: true,
+        studentId: true,
+        statusAccount: true,
       },
       take: per_page,
       skip: (page - 1) * per_page,
@@ -128,7 +138,11 @@ export class UserService {
       },
     });
     return new ResponseClass(
-      users,
+      {
+        data: users,
+        total: count,
+      },
+
       HttpStatusCode.SUCCESS,
       'Get list user successfully',
     );
@@ -180,5 +194,86 @@ export class UserService {
       HttpStatusCode.SUCCESS,
       'Unban user successfully',
     );
+  }
+
+  async getUserByNameOrStudentId(
+    name: string,
+    field: string,
+    page: number,
+    per_page: number,
+  ): Promise<any> {
+    try {
+      if (field === 'name') {
+        const count = await this.prisma.user.count({
+          where: {
+            name: {
+              contains: name,
+            },
+          },
+        });
+        const users = await this.prisma.user.findMany({
+          select: {
+            id: true,
+            name: true,
+            email: true,
+            avatarUrl: true,
+            class: true,
+            studentId: true,
+            statusAccount: true,
+          },
+          take: per_page,
+          skip: (page - 1) * per_page,
+          where: {
+            name: {
+              contains: name,
+            },
+          },
+        });
+        return new ResponseClass(
+          {
+            data: users,
+            total: count,
+          },
+
+          HttpStatusCode.SUCCESS,
+          'Get list user successfully',
+        );
+      } else if (field === 'studentId') {
+        const count = await this.prisma.user.count({
+          where: {
+            studentId: {
+              contains: name,
+            },
+          },
+        });
+        const users = await this.prisma.user.findMany({
+          select: {
+            id: true,
+            name: true,
+            email: true,
+            avatarUrl: true,
+            class: true,
+            studentId: true,
+            statusAccount: true,
+          },
+          take: per_page,
+          skip: (page - 1) * per_page,
+          where: {
+            studentId: {
+              contains: name,
+            },
+          },
+        });
+        return new ResponseClass(
+          {
+            data: users,
+            total: count,
+          },
+
+          HttpStatusCode.SUCCESS,
+          'Get list user successfully',
+        );
+      }
+    } catch (error) {}
   }
 }

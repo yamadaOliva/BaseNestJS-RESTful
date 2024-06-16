@@ -84,4 +84,10 @@ export class SocketGateway
     console.log('refreshGroup', room);
     this.server.to(room).emit('refreshGroup', 'refresh');
   }
+
+  @SubscribeMessage('banUser')
+  async handleBanUser(client: Socket, room: string) {
+    console.log('banUser', room);
+    this.server.to(room).emit('banned', 'refresh');
+  }
 }

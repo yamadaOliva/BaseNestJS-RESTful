@@ -235,9 +235,8 @@ model Report {
   reportedId   String
   userReported User     @relation("reported", fields: [reportedId], references: [id])
   post         Post?    @relation(fields: [postId], references: [id])
-  commentId    String?  @default("")
+  commentId    String?
   comment      Comment? @relation(fields: [commentId], references: [id])
-  reason       String
 
   @@map("reports")
 }

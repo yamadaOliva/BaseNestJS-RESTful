@@ -331,7 +331,7 @@ export class PostService {
         },
       });
 
-      if (!checkFriend && post.type === 'PERSONAL') {
+      if (!checkFriend && post.type === 'PERSONAL' && post.userId !== userId) {
         return new ResponseClass(
           {},
           400,
@@ -401,7 +401,11 @@ export class PostService {
           ],
         },
       });
-      if (!checkFriend && comment.post.type === 'PERSONAL') {
+      if (
+        !checkFriend &&
+        comment.post.type === 'PERSONAL' &&
+        comment.post.userId !== userId
+      ) {
         return new ResponseClass(
           {},
           400,

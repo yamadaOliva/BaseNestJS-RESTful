@@ -86,7 +86,6 @@ export class AuthService {
         activeToken: activeToken,
       });
 
-      await this.setOnlineStatus(user.id);
       return new ResponseClass(
         token,
         HttpStatusCode.SUCCESS,

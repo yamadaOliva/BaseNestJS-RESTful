@@ -197,9 +197,8 @@ Table reports {
   reportedId String [not null]
   userReported users [not null]
   post posts
-  commentId String [default: '']
+  commentId String
   comment comments
-  reason String [not null]
 }
 
 Table src {

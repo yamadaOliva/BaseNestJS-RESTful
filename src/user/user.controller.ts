@@ -1,4 +1,12 @@
-import { Body, Controller, Get, Param, Put, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Param,
+  Put,
+  UseGuards,
+  ParseIntPipe,
+} from '@nestjs/common';
 import { JwtGuard } from '../auth/guard';
 import { GetUser } from '../auth/decorator';
 import { UserService } from './user.service';
@@ -35,9 +43,38 @@ export class UserController {
   @Get('/list/:page/:limit')
   list(
     @GetUser() user: any,
-    @Param('page') page: number,
-    @Param('limit') limit: number,
+    @Param('page', ParseIntPipe) page: number,
+    @Param('limit', ParseIntPipe) limit: number,
   ) {
     return this.userService.getListUser(user.user.id, page, limit);
   }
+
+  @UseGuards(JwtGuard)
+  @Put('/ban/:id')
+  banUser(@GetUser() user, @Param() id: any) {
+    return this.userService.banUser(user.user.id, id.id);
+  }
+
+  @UseGuards(JwtGuard)
+  @Put('/unban/:id')
+  unbanUser(@GetUser() user, @Param() id: any) {
+    return this.userService.unbanUser(user.user.id, id.id);
+  }
+
+  @UseGuards(JwtGuard)
+  @Get('/search/:name/:field/:page/:limit')
+  search(
+    @Param('name') name: string,
+    @Param('field') field: string,
+    @Param('page', ParseIntPipe) page: number,
+    @Param('limit', ParseIntPipe) limit: number,
+  ) {
+    return this.userService.getUserByNameOrStudentId(
+      name,
+      field,
+      page,
+      limit,
+    );
+  }
+
 }

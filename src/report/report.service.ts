@@ -42,18 +42,17 @@ export class ReportService {
 
   async getReports(page: number, limit: number) {
     try {
+      const count = await this.prisma.report.count();
       const reports = await this.prisma.report.findMany({
         include: {
-            user: true,
-            userReported: true,
-            post: true,
+          user: true,
+          userReported: true,
         },
         skip: (page - 1) * limit,
         take: limit,
-
       });
       return new ResponseClass(
-        reports,
+        { reports, total: count },
         HttpStatusCode.SUCCESS,
         'Get reports successfully',
       );
