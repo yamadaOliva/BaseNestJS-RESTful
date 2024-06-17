@@ -124,4 +124,16 @@ export class PostController {
   async deleteComment(@Param('id') id: string) {
     return await this.postService.deleteComment(id);
   }
+
+  @UseGuards(JwtGuard)
+  @Delete('/comment/admin/delete/:id')
+  async deleteCommentByAdmin(@Param('id') id: string) {
+    return await this.postService.deleteCommentAdmin(id);
+  }
+
+  @UseGuards(JwtGuard)
+  @Delete('admin/delete/:id')
+  async deletePostByAdmin(@Param('id') id: string) {
+    return await this.postService.deletePostAdmin(id);
+  }
 }

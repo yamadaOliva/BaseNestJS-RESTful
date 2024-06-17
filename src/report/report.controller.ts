@@ -6,6 +6,7 @@ import {
   Post,
   Body,
   UseGuards,
+  Delete,
 } from '@nestjs/common';
 import { ReportService } from './report.service';
 import { JwtGuard } from 'src/auth/guard';
@@ -32,5 +33,11 @@ export class ReportController {
     @Param('limit', ParseIntPipe) limit: number,
   ) {
     return this.reportService.getReports(page, limit);
+  }
+
+  @UseGuards(JwtGuard)
+  @Delete('/delete/:id')
+  deleteReport(@Param('id') id: string) {
+    return this.reportService.deleteReport(id);
   }
 }

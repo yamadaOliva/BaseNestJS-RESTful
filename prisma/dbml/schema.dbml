@@ -255,6 +255,6 @@ Ref: reports.userId > users.id
 
 Ref: reports.reportedId > users.id
 
-Ref: reports.postId > posts.id
+Ref: reports.postId > posts.id [delete: Cascade]
 
 Ref: reports.commentId > comments.id

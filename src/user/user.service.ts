@@ -208,6 +208,7 @@ export class UserService {
           where: {
             name: {
               contains: name,
+              mode: 'insensitive',
             },
           },
         });
@@ -243,6 +244,7 @@ export class UserService {
           where: {
             studentId: {
               contains: name,
+              mode: 'insensitive',
             },
           },
         });

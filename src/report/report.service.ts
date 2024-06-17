@@ -47,6 +47,7 @@ export class ReportService {
         include: {
           user: true,
           userReported: true,
+          comment: true,
         },
         skip: (page - 1) * limit,
         take: limit,
@@ -55,6 +56,23 @@ export class ReportService {
         { reports, total: count },
         HttpStatusCode.SUCCESS,
         'Get reports successfully',
+      );
+    } catch (error) {
+      console.log(error);
+    }
+  }
+
+  async deleteReport(id: string) {
+    try {
+      const report = await this.prisma.report.delete({
+        where: {
+          id: id,
+        },
+      });
+      return new ResponseClass(
+        report,
+        HttpStatusCode.SUCCESS,
+        'Report deleted successfully',
       );
     } catch (error) {
       console.log(error);

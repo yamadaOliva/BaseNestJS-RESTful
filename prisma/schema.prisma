@@ -234,7 +234,7 @@ model Report {
   type         String   @default("POST")
   reportedId   String
   userReported User     @relation("reported", fields: [reportedId], references: [id])
-  post         Post?    @relation(fields: [postId], references: [id])
+  post         Post?    @relation(fields: [postId], references: [id], onDelete: Cascade)
   commentId    String?
   comment      Comment? @relation(fields: [commentId], references: [id])
 

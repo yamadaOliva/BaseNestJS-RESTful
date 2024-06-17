@@ -662,4 +662,71 @@ export class PostService {
       throw new Error('Failed to delete comment');
     }
   }
+
+  async deletePostAdmin(postId: string) {
+    try {
+      const post = await this.prisma.post.findUnique({
+        where: {
+          id: postId,
+        },
+        include: {
+          user: {
+            select: {
+              id: true,
+            },
+          },
+        },
+      });
+      await this.prisma.post.delete({
+        where: {
+          id: postId,
+        },
+      });
+      await this.prisma.notification.create({
+        data: {
+          userId: post.user.id,
+          content: `Bài viết của bạn đã bị xóa do vi phạm chính sách`,
+          type: 'FRIEND',
+        },
+      });
+      return new ResponseClass({}, 200, 'Post deleted successfully');
+    } catch (error) {
+      console.error(error);
+      throw new Error('Failed to delete post');
+    }
+  }
+
+  async deleteCommentAdmin(commentId: string) {
+    try {
+      const comment = await this.prisma.comment.findUnique({
+        where: {
+          id: commentId,
+        },
+        include: {
+          user: {
+            select: {
+              id: true,
+            },
+          },
+        },
+      });
+      await this.prisma.comment.delete({
+        where: {
+          id: commentId,
+        },
+      });
+      await this.prisma.notification.create({
+        data: {
+          userId: comment.user.id,
+          content: `Bình luận của bạn đã bị xóa do vi phạm chính sách`,
+          type: 'FRIEND',
+        },
+      });
+      return new ResponseClass({}, 200, 'Comment deleted successfully');
+    } catch (error) {
+      console.error(error);
+      throw new Error('Failed to delete comment');
+    }
+  }
+
 }
