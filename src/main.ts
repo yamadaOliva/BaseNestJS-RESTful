@@ -27,6 +27,7 @@ async function bootstrap() {
   app.use(morgran('dev'));
   app.use(compression());
   //start server
+  console.log(process.env.REDIS_BASE , parseInt(process.env.REDIS_HOST) );
   await app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
   if (module.hot) {
     module.hot.accept();
