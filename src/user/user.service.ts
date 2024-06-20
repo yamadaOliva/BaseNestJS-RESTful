@@ -93,6 +93,7 @@ export class UserService {
         'Update user profile successfully',
       );
     } catch (error) {
+      console.log(error);
       throw new NotFoundException('User not found');
     }
   }

@@ -169,6 +169,7 @@ export class AuthService {
         );
       }
     } catch (error) {
+      console.log(error);
       return new ResponseClass(
         null,
         HttpStatusCode.ERROR,
