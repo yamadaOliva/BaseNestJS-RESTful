@@ -109,13 +109,14 @@ export class AuthService {
           email: authDTO.email,
         },
       });
-      if (user.statusAccount == 'BLOCKED')
-        return new ResponseClass(
-          null,
-          HttpStatusCode.ERROR,
-          'Tài khoản của bạn đã bị khóa',
-        );
+
       if (user) {
+        if (user.statusAccount == 'BLOCKED')
+          return new ResponseClass(
+            null,
+            HttpStatusCode.ERROR,
+            'Tài khoản của bạn đã bị khóa',
+          );
         const isPasswordValid = await argon.verify(
           user.password,
           authDTO.password,
