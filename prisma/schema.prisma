@@ -83,7 +83,7 @@ model Major {
 model classCount {
   id         Int   @id @default(autoincrement())
   majorId    Int
-  major      Major @relation(fields: [majorId], references: [id])
+  major      Major @relation(fields: [majorId], references: [id], onDelete: Cascade)
   schoolYear Int
   count      Int
 

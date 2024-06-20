@@ -234,6 +234,7 @@ async function main() {
   }
   try {
     await prisma.major.deleteMany();
+    await prisma.classCount.deleteMany();
     await prisma.major.createMany({
       data: programsSortedByName,
     });
@@ -243,6 +244,12 @@ async function main() {
   } catch (error) {
     console.log(error);
   }
+  const idMajor = await prisma.major.findFirst({
+    where: {
+      acronym: 'ADMIN',
+    },
+  });
+  await prisma.user.deleteMany();
   const studentRecords = generateStudentRecords(100);
   const gender = ['Nam', 'Nữ', 'Khác'];
   try {
@@ -258,7 +265,7 @@ async function main() {
         Birthday: new Date(),
         avatarUrl:
           'https://res.cloudinary.com/subarasuy/image/upload/v1716135390/prvieraqcydb8ehxjf8x.png',
-        majorId: 100,
+        majorId: idMajor.id,
         class: 'ADMIN',
         statusAccount: 'ACTIVE',
         city: 'Thành phố Hà Nội',
