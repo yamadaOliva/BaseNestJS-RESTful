@@ -1,12 +1,13 @@
 import { Module, Global } from '@nestjs/common';
 import { Redis } from 'ioredis';
 import * as dotenv from 'dotenv';
+dotenv.config();
 const redisProvider = {
   provide: 'REDIS_CLIENT',
   useFactory: () => {
     const redis = new Redis({
-      host:  process.env.REDIS_BASE || 'localhost',
-      port: parseInt(process.env.REDIS_HOST)  || 6379,
+      host: process.env.REDIS_BASE || 'localhost',
+      port: parseInt(process.env.REDIS_HOST) || 6379,
     });
     return redis;
   },
