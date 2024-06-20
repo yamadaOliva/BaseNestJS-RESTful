@@ -63,7 +63,6 @@ export class ChatService {
 
   async getUserChatList(userId: string, limit: number, page: number) {
     try {
-      console.log(userId);
       //the last message of each conversation use distinct
       let list = await this.prisma.messagePrivate.findMany({
         where: {
@@ -121,7 +120,6 @@ export class ChatService {
         };
       });
       list = await Promise.all(promises);
-      console.log('wtf ........', list);
       return new ResponseClass(list, HttpStatusCode.SUCCESS, 'List chat');
     } catch (error) {
       console.log(error);

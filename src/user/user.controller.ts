@@ -28,14 +28,12 @@ export class UserController {
   @UseGuards(JwtGuard)
   @Put('/profile')
   updateProfile(@Body() userData: any, @GetUser() user: any) {
-    console.log(userData);
     return this.userService.updateProfile(user.user.email, userData);
   }
 
   @UseGuards(JwtGuard)
   @Get('/profile/:id')
   getProfileById(@Param() id: any) {
-    console.log(id);
     return this.userService.getProfileById(id.id);
   }
 

@@ -10,7 +10,6 @@ export class GroupController {
   @UseGuards(JwtGuard)
   @Post('create')
   async createGroup(@GetUser() user, @Body('name') name: string) {
-    console.log(user, name);
     return await this.groupService.createGroup(user.user.id, name);
   }
 
@@ -23,7 +22,6 @@ export class GroupController {
   @UseGuards(JwtGuard)
   @Get('recommend')
   async getRecommendGroup(@GetUser() user) {
-    console.log(user.user.id);
     return await this.groupService.recommendGroup(user.user.id);
   }
 

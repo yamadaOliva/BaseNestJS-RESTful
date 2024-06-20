@@ -21,7 +21,6 @@ export class RTStrategy extends PassportStrategy(Strategy, 'rt') {
     if (!refreshToken) {
       throw new Error('Refresh token not found');
     }
-    console.log(refreshToken);
     return {
       ...payload,
       refreshToken,

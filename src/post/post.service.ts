@@ -189,7 +189,6 @@ export class PostService {
   }
 
   async likePost(userId: string, postId: string) {
-    console.log(userId, postId);
     try {
       const post = await this.prisma.post.findUnique({
         where: {
@@ -208,7 +207,6 @@ export class PostService {
           commentId: null,
         },
       });
-      console.log(post, user);
       if (post.userId !== userId) {
         await this.prisma.notification.create({
           data: {
@@ -307,7 +305,6 @@ export class PostService {
 
   async createComment(userId: string, postId: string, content: string) {
     try {
-      console.log(userId, postId, content);
       const post = await this.prisma.post.findUnique({
         where: {
           id: postId,

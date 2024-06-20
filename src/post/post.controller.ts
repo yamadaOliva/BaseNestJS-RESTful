@@ -29,7 +29,6 @@ export class PostController {
     @Param('page', ParseIntPipe) page: number,
     @Param('limit', ParseIntPipe) limit: number,
   ) {
-    console.log(id);
     return await this.postService.getPostByUserId(id, page, limit);
   }
 
@@ -64,7 +63,6 @@ export class PostController {
   @UseGuards(JwtGuard)
   @Post('/comment/like')
   async likeComment(@GetUser() user, @Body() data) {
-    console.log(data);
     return await this.postService.likeComment(user.user.id, data.commentId);
   }
 

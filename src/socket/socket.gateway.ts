@@ -35,7 +35,6 @@ export class SocketGateway
     },
   ) {
     const roomName = 'user_' + data.toUserId;
-    console.log('sdfsdf', data);
     this.server.to(roomName).emit('receive-message', data);
   }
 
@@ -48,19 +47,16 @@ export class SocketGateway
   @SubscribeMessage('joinPost')
   async handleJoinPost(client: Socket, room: string) {
     client.join(room);
-    console.log('room', room);
     client.emit('joinedPost', room);
   }
 
   @SubscribeMessage('comment')
   async handleComment(client: Socket, room: any) {
-    console.log('comment', room);
     this.server.to(room).emit('comment', 'refresh');
   }
 
   @SubscribeMessage('notification')
   async handleNotification(client: Socket, room: string) {
-    console.log('notification', room);
     this.server.to(room).emit('notification', 'refresh');
   }
 
@@ -76,18 +72,15 @@ export class SocketGateway
   @SubscribeMessage('join-group')
   async handleJoinGroup(client: Socket, room: string) {
     client.join(room);
-    console.log('join-groupppppppppppppppppppppppppppppppp', room);
   }
 
   @SubscribeMessage('refreshGroup')
   async handleRefreshGroup(client: Socket, room: string) {
-    console.log('refreshGroup', room);
     this.server.to(room).emit('refreshGroup', 'refresh');
   }
 
   @SubscribeMessage('banUser')
   async handleBanUser(client: Socket, room: string) {
-    console.log('banUser', room);
     this.server.to(room).emit('banned', 'refresh');
   }
 }

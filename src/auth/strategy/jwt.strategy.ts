@@ -14,7 +14,6 @@ export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
   async validate(payload: any): Promise<any> {
     await this.redis.set(`online:${payload.user.id}`, 'true', 'EX', 6000);
     const getListOnline = await this.redis.keys('online:*');
-    console.log(getListOnline);
     return {
       ...payload,
     };

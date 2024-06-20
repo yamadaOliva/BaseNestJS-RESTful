@@ -53,7 +53,6 @@ export class AuthController {
 
   @Post('/verify-forgot-password/')
   verifyResetPassword(@Body('token') token: string): Promise<any> {
-    console.log(token);
     return this.authService.verifyResetPasswordToken(token);
   }
 
@@ -65,7 +64,6 @@ export class AuthController {
   @UseGuards(JwtGuard)
   @Post('/change-password')
   changePassword(@GetUser() user: any, @Body() body: any): Promise<any> {
-    console.log(body);
     return this.authService.changePassword(
       user.user.id,
       body.oldPassword,

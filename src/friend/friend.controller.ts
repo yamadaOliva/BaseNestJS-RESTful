@@ -24,7 +24,6 @@ export class FriendController {
   @UseGuards(JwtGuard)
   @Put('/accept')
   async acceptFriend(@Body('idRequest') idRequest: number) {
-    console.log(idRequest);
     return await this.friendService.acceptFriend(idRequest);
   }
 

@@ -22,8 +22,6 @@ export class ChatController {
     @Param('page', ParseIntPipe) page: number,
     @Param('limit', ParseIntPipe) limit: number,
   ) {
-    console.log(user, page, limit);
-    return await this.chatService.getUserChatList(user.user.id, limit, page);
   }
 
   @UseGuards(JwtGuard)

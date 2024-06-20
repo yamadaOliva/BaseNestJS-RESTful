@@ -7,7 +7,6 @@ export class EmailConsumer {
   constructor(private readonly mailerService: MailerService) {}
   @Process('register')
   async sendMail(job: Job<any>) {
-    console.log('sdfsdfdsf', job.data);
     const { email, name, activeToken } = job.data;
     const link = `http://192.168.1.14:3000/auth/active/${activeToken}`;
     await this.mailerService.sendMail({

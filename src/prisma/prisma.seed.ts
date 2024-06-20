@@ -296,7 +296,6 @@ async function main() {
       });
     });
     await Promise.all(promises);
-    console.log('Seeded users');
   } catch (error) {
     console.log(error);
   }

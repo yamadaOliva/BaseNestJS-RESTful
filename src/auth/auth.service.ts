@@ -129,7 +129,6 @@ export class AuthService {
           });
 
           if (user.statusAccount === 'INACTIVE') {
-            console.log('inactive');
             const randomToken = crypto.randomBytes(64).toString('hex');
             let activeToken = await argon.hash(user.email + randomToken);
             activeToken = activeToken.replace(/\//g, '');
@@ -399,7 +398,6 @@ export class AuthService {
     let resetToken = await argon.hash(user.email + randomToken);
     resetToken = resetToken.replace(/\//g, '');
     await this.redis.set(resetToken, user.id, 'EX', 6000);
-    console.log(resetToken);
     await this.sendMailQueue.add('forgotPassword', {
       email: user.email,
       name: user.name,

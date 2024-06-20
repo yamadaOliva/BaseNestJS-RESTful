@@ -7,7 +7,6 @@ import { ResponseClass } from '../global';
 export class UserService {
   constructor(private prisma: PrismaService) {}
   async findOne(email: string): Promise<any> {
-    console.log(email);
     try {
     } catch (error) {
       throw new NotFoundException('User not found');
@@ -70,7 +69,6 @@ export class UserService {
   };
 
   async updateProfile(email: string, data: any): Promise<any> {
-    console.log(data);
     try {
       const user = await this.prisma.user.update({
         where: {
