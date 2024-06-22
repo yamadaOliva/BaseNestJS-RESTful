@@ -21,7 +21,11 @@ export class SocketGateway
 
   async afterInit(server: Server) {}
 
-  async handleDisconnect(client: Socket) {}
+  async handleDisconnect(client: Socket) {
+    const userId = client.handshake.query.userId;
+    const roomName = 'user_' + userId;
+    client.leave(roomName);
+  }
 
   async handleConnection(client: Socket) {}
   @SubscribeMessage('message')
