@@ -15,7 +15,7 @@ async function bootstrap() {
   const corsOptions: CorsOptions = {
     origin: [
       PORT_REACT,
-      'http://192.168.1.14:3000',
+      'http://192.168.1.15:3000',
       'http://192.168.2.36:3000',
     ],
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
