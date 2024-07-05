@@ -184,11 +184,11 @@ export class AuthService {
     return {
       access_token: await this.jwtService.signAsync(payload, {
         secret: process.env.JWT_SECRET,
-        expiresIn: process.env.JWT_EXPIRES_IN,
+        expiresIn: "24h",
       }),
       refresh_token: await this.jwtService.signAsync(payload, {
         secret: process.env.RT_SECRET,
-        expiresIn: process.env.RT_EXPIRES_IN,
+        expiresIn: "24h",
       }),
     };
   }
