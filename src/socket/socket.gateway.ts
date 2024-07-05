@@ -9,7 +9,7 @@ import {
 import { Socket, Server } from 'socket.io';
 import { ChatService } from 'src/chat/chat.service';
 //running port 80, cors
-@WebSocketGateway(8001, {
+@WebSocketGateway(443, {
   cors: '*',
 })
 export class SocketGateway
