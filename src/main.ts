@@ -17,6 +17,7 @@ async function bootstrap() {
       PORT_REACT,
       'http://192.168.1.14:3000',
       'http://192.168.2.36:3000',
+      "https://ten-tsuh.vercel.app/"
     ],
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
     credentials: true,
