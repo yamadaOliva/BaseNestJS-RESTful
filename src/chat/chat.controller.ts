@@ -22,7 +22,7 @@ export class ChatController {
     @Param('page', ParseIntPipe) page: number,
     @Param('limit', ParseIntPipe) limit: number,
   ) {
-    return await this.chatService.getUserChatList(user.user.id, page, limit);
+    return await this.chatService.getUserChatList(user.user.id, limit, page);
   }
 
   @UseGuards(JwtGuard)
