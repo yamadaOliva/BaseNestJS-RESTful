@@ -62,8 +62,18 @@ export class GroupController {
   }
 
   @UseGuards(JwtGuard)
-  @Post('deleteUser') 
-  async deleteGroup(@GetUser() user, @Body('groupId') groupId: string, @Body('userId') userId: string) {
+  @Post('deleteUser')
+  async deleteGroup(
+    @GetUser() user,
+    @Body('groupId') groupId: string,
+    @Body('userId') userId: string,
+  ) {
     return await this.groupService.deleteMember(user.user.id, groupId, userId);
+  }
+
+  @UseGuards(JwtGuard)
+  @Get('search/:name')
+  async searchGroup(@Param('name') name: string) {
+    return await this.groupService.findGroupByName(name);
   }
 }
